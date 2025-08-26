@@ -35,9 +35,11 @@ Generate MySQL query using the exact schema provided.
 Schema: {schema}
 Question: {question}
 
-IMPORTANT TABLE RELATIONSHIPS:
+IMPORTANT TABLE RELATIONSHIPS AND COLUMN LOCATIONS:
 - counterparty_sector is in counterparty_new table, NOT in trade_new
+- counterparty_count is in concentration_new table, NOT in counterparty_new
 - To get sector info for trades: JOIN trade_new with counterparty_new using reporting_counterparty_id = counterparty_id
+- To get concentration data: use concentration_new table
 - asset_class is in trade_new for trade categorization
 
 For sector analysis example:
@@ -50,10 +52,22 @@ JOIN counterparty_new c ON t.reporting_counterparty_id = c.counterparty_id
 GROUP BY c.counterparty_sector;
 ```
 
+For concentration analysis example:
+```sql
+SELECT 
+  concentration_group,
+  SUM(CAST(counterparty_count AS UNSIGNED)) as total_count
+FROM concentration_new
+GROUP BY concentration_group;
+```
+
 Key rules:
+- NEVER use counterparty_count from counterparty_new (it doesn't exist there)
+- counterparty_count is ONLY in concentration_new table
 - Use JOINs when data spans multiple tables
 - Check column exists in correct table before using
 - For sectors: use counterparty_new.counterparty_sector
+- For concentration: use concentration_new.counterparty_count
 - For trades: use trade_new columns
 
 Return ONLY the SQL query:
