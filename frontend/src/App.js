@@ -88,7 +88,8 @@ function App() {
         rowCount: response.row_count,
         success: response.success,
         needsRefinement: response.needs_refinement,
-        originalQuestion: originalQuestion
+        originalQuestion: originalQuestion,
+        dataSources: response.data_sources
       };
       
       setMessages(prev => [...prev, confirmMessage]);
@@ -303,7 +304,6 @@ function App() {
       doc.setTextColor(108, 117, 125); // Gray text
       doc.text(`Generated: ${new Date(reportData.generated_at).toLocaleString()}`, 20, yPos + 5);
       doc.text(`Record Count: ${reportData.record_count}`, 20, yPos + 12);
-      doc.text(`Amazon Q Developer - SQL Assistant`, 120, yPos + 5);
       
       // Download PDF
       doc.save(`executive-report-${Date.now()}.pdf`);

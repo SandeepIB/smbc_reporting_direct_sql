@@ -392,6 +392,7 @@ const ChatInterface = ({ messages, onSendMessage, onConfirmQuestion, onRefineMes
                     sqlQuery={message.sqlQuery}
                     rawData={message.rawData}
                     rowCount={message.rowCount}
+                    dataSources={message.dataSources}
                     isExpanded={expandedMessages.has(message.id)}
                   />
                 )}
