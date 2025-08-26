@@ -1,14 +1,19 @@
 # Natural Language to SQL Application
 
-A Python application that converts natural language questions into SQL queries and executes them against a MySQL database.
+A full-stack application that converts natural language questions into SQL queries and executes them against a MySQL database. Available as both CLI and web interface.
 
 ## Features
 
+### Core Features
 - **Cacheable Schema Generation**: Generate database schema once and reuse
 - **Natural Language Processing**: Convert questions to SQL using OpenAI
 - **Safe Query Execution**: Execute queries with proper error handling
-- **Interactive Mode**: Ask questions interactively
-- **Command Line Interface**: Run single queries or manage schema
+- **Session Management**: Multi-user support with chat history
+
+### Interface Options
+- **Web Interface**: Modern React-based chat interface
+- **CLI Interface**: Interactive command-line tool
+- **REST API**: FastAPI backend for integration
 
 ## Setup
 
@@ -35,49 +40,90 @@ ALLOWED_SCHEMAS=
 ALLOWED_TABLES=
 ```
 
-## Usage
+## Quick Start
 
-### Generate Schema Cache
+### Full-Stack Application (Recommended)
 ```bash
-python app.py generate-schema
+# Start both backend API and frontend web interface
+./start_fullstack.sh
 ```
 
-### Interactive Mode
+Then open http://localhost:3000 in your browser.
+
+### CLI Only
 ```bash
-python app.py
+# Interactive mode
+python cli_app.py
+
+# Single question
+python cli_app.py "How many users are in the system?"
+
+# Test connection
+python cli_app.py test-connection
 ```
 
-### Single Question
+### Backend API Only
 ```bash
-python app.py "How many users are in the system?"
+# Start FastAPI server
+./run_backend.sh
 ```
 
-### Test Connection
+API will be available at http://localhost:8000
+
+### Frontend Only
 ```bash
-python app.py test-connection
+# Start React development server
+./run_frontend.sh
 ```
 
-### Schema Information
-```bash
-python app.py schema-info
-```
-
-### Refresh Schema Cache
-In interactive mode, type `refresh` to regenerate the schema cache.
+Web interface will be available at http://localhost:3000
 
 ## File Structure
 
-- `app.py` - Main application entry point
-- `config.py` - Configuration management
-- `schema_cache.py` - Database schema caching system
-- `database.py` - Database connection and query execution
-- `ai_service.py` - OpenAI integration for SQL generation
-- `schema_cache.json` - Generated schema cache file (auto-created)
+```
+├── backend/                    # FastAPI backend
+│   ├── main.py                # API server
+│   ├── chatbot_service.py     # Core chatbot logic
+│   └── requirements.txt       # Backend dependencies
+├── frontend/                   # React frontend
+│   ├── src/
+│   │   ├── components/        # React components
+│   │   └── services/          # API services
+│   └── package.json           # Frontend dependencies
+├── src/                       # Core modules (shared)
+│   ├── core/                  # Configuration
+│   ├── services/              # Database, AI, Schema services
+│   └── utils/                 # Utilities
+├── cli_app.py                 # CLI application
+├── app.py                     # Legacy CLI (still works)
+├── start_fullstack.sh         # Start both backend & frontend
+├── run_backend.sh             # Start backend only
+├── run_frontend.sh            # Start frontend only
+└── SETUP.md                   # Detailed setup guide
+```
 
-## Commands
+## Available Interfaces
 
+### Web Interface Features
+- Modern chat-style interface
+- Real-time responses
+- Session-based conversations
+- SQL query display
+- Mobile-responsive design
+
+### CLI Commands
 - `quit` / `exit` / `q` - Exit interactive mode
 - `refresh` - Reload database schema
 - `generate-schema` - Generate new schema cache
 - `test-connection` - Test database connectivity
 - `schema-info` - Show cached schema information
+
+### API Endpoints
+- `POST /chat` - Send message to chatbot
+- `GET /health` - Health check
+- `GET /sessions/{id}/history` - Get chat history
+- `POST /schema/refresh` - Refresh schema cache
+
+## Installation
+
+See [SETUP.md](SETUP.md) for detailed installation and setup instructions.
