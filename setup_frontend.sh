@@ -64,5 +64,9 @@ npm install --legacy-peer-deps
 echo "🔒 Fixing security vulnerabilities..."
 npm audit fix --force
 
+# Ensure react-scripts is installed
+echo "📦 Ensuring react-scripts is available..."
+npm install react-scripts@5.0.1 --save
+
 echo "✅ Frontend setup complete!"
 echo "🚀 You can now run: npm start"

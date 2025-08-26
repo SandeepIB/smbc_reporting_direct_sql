@@ -1,16 +1,14 @@
 #!/bin/bash
 
-echo "Starting Natural Language to SQL Frontend..."
+echo "🚀 Starting React frontend..."
 
-# Navigate to frontend directory
 cd frontend
 
-# Check if node_modules exists
-if [ ! -d "node_modules" ]; then
-    echo "Installing Node.js dependencies..."
-    npm install
+# Check if react-scripts exists
+if ! npm list react-scripts > /dev/null 2>&1; then
+    echo "📦 Installing react-scripts..."
+    npm install react-scripts@5.0.1 --save
 fi
 
-# Start the React development server
-echo "Starting React development server on http://localhost:3000"
+# Start the development server
 npm start
