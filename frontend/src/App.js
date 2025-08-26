@@ -128,101 +128,182 @@ function App() {
       const { jsPDF } = await import('jspdf');
       const doc = new jsPDF();
       
+      // Set default font
+      doc.setFont('helvetica');
+      
+      // Header with background
+      doc.setFillColor(41, 128, 185); // Blue background
+      doc.rect(0, 0, 210, 35, 'F');
+      
       // Title
-      doc.setFontSize(18);
-      doc.setFont(undefined, 'bold');
-      doc.text('Executive Report – Counterparty & Exposure Insights', 20, 20);
-      
-      let yPos = 40;
-      
-      // User Question
+      doc.setTextColor(255, 255, 255); // White text
+      doc.setFontSize(20);
+      doc.setFont('helvetica', 'bold');
+      doc.text('Executive Report', 20, 15);
       doc.setFontSize(14);
-      doc.setFont(undefined, 'bold');
-      doc.text('User Question:', 20, yPos);
-      yPos += 10;
-      doc.setFont(undefined, 'normal');
+      doc.setFont('helvetica', 'normal');
+      doc.text('Counterparty & Exposure Insights', 20, 25);
+      
+      // Reset text color
+      doc.setTextColor(0, 0, 0);
+      let yPos = 50;
+      
+      // User Question Section
+      doc.setFillColor(248, 249, 250); // Light gray background
+      doc.rect(15, yPos - 5, 180, 8, 'F');
+      doc.setFontSize(14);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(52, 73, 94); // Dark blue-gray
+      doc.text('User Question', 20, yPos);
+      yPos += 15;
+      
+      doc.setFont('helvetica', 'normal');
       doc.setFontSize(11);
+      doc.setTextColor(44, 62, 80); // Darker text
       const questionLines = doc.splitTextToSize(reportData.question, 170);
       doc.text(questionLines, 20, yPos);
-      yPos += questionLines.length * 7 + 10;
+      yPos += questionLines.length * 6 + 15;
       
-      // Data Sources
+      // Data Sources Section
+      doc.setFillColor(248, 249, 250);
+      doc.rect(15, yPos - 5, 180, 8, 'F');
       doc.setFontSize(14);
-      doc.setFont(undefined, 'bold');
-      doc.text('Data Sources:', 20, yPos);
-      yPos += 10;
-      doc.setFont(undefined, 'normal');
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(52, 73, 94);
+      doc.text('Data Sources', 20, yPos);
+      yPos += 15;
+      
+      doc.setFont('helvetica', 'normal');
       doc.setFontSize(11);
+      doc.setTextColor(44, 62, 80);
       const sources = reportData.data_sources || ['counterparty_new', 'trade_new', 'concentration_new'];
       sources.forEach(source => {
+        doc.setFillColor(230, 240, 250); // Light blue background for items
+        doc.rect(20, yPos - 3, 160, 6, 'F');
         doc.text(`• ${source}`, 25, yPos);
-        yPos += 7;
+        yPos += 8;
       });
       yPos += 10;
       
-      // Executive Summary
+      // Executive Summary Section
+      doc.setFillColor(248, 249, 250);
+      doc.rect(15, yPos - 5, 180, 8, 'F');
       doc.setFontSize(14);
-      doc.setFont(undefined, 'bold');
-      doc.text('Executive Summary:', 20, yPos);
-      yPos += 10;
-      doc.setFont(undefined, 'normal');
-      doc.setFontSize(11);
-      const summaryLines = doc.splitTextToSize(reportData.executive_summary, 170);
-      doc.text(summaryLines, 20, yPos);
-      yPos += summaryLines.length * 7 + 15;
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(52, 73, 94);
+      doc.text('Executive Summary', 20, yPos);
+      yPos += 15;
       
-      // Tabular Results
+      // Summary content with border
+      doc.setFillColor(255, 248, 220); // Light yellow background
+      const summaryHeight = Math.max(20, Math.ceil(reportData.executive_summary.length / 80) * 6);
+      doc.rect(20, yPos - 5, 160, summaryHeight, 'F');
+      doc.setDrawColor(255, 193, 7); // Yellow border
+      doc.rect(20, yPos - 5, 160, summaryHeight, 'S');
+      
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(11);
+      doc.setTextColor(44, 62, 80);
+      const summaryLines = doc.splitTextToSize(reportData.executive_summary, 150);
+      doc.text(summaryLines, 25, yPos + 5);
+      yPos += summaryHeight + 15;
+      
+      // Query Results Section
       if (reportData.raw_data && reportData.raw_data.length > 0) {
+        doc.setFillColor(248, 249, 250);
+        doc.rect(15, yPos - 5, 180, 8, 'F');
         doc.setFontSize(14);
-        doc.setFont(undefined, 'bold');
-        doc.text('Query Results:', 20, yPos);
-        yPos += 10;
+        doc.setFont('helvetica', 'bold');
+        doc.setTextColor(52, 73, 94);
+        doc.text('Query Results', 20, yPos);
+        yPos += 15;
+        
+        // Table setup
+        const headers = Object.keys(reportData.raw_data[0]);
+        const colWidth = Math.min(40, 160 / headers.length);
+        
+        // Table header background
+        doc.setFillColor(52, 73, 94); // Dark blue
+        doc.rect(20, yPos - 3, 160, 8, 'F');
         
         // Table headers
-        const headers = Object.keys(reportData.raw_data[0]);
-        doc.setFontSize(10);
-        doc.setFont(undefined, 'bold');
-        let xPos = 20;
+        doc.setFontSize(9);
+        doc.setFont('helvetica', 'bold');
+        doc.setTextColor(255, 255, 255); // White text
+        let xPos = 22;
         headers.forEach(header => {
-          doc.text(header, xPos, yPos);
-          xPos += 40;
+          const headerText = header.length > 12 ? header.substring(0, 12) + '...' : header;
+          doc.text(headerText, xPos, yPos + 2);
+          xPos += colWidth;
         });
-        yPos += 7;
+        yPos += 10;
         
-        // Table data (first 10 rows)
-        doc.setFont(undefined, 'normal');
-        reportData.raw_data.slice(0, 10).forEach(row => {
-          xPos = 20;
+        // Table data with alternating row colors
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(8);
+        doc.setTextColor(44, 62, 80);
+        
+        reportData.raw_data.slice(0, 8).forEach((row, index) => {
+          // Alternating row background
+          if (index % 2 === 0) {
+            doc.setFillColor(248, 249, 250);
+            doc.rect(20, yPos - 2, 160, 6, 'F');
+          }
+          
+          xPos = 22;
           headers.forEach(header => {
             const value = String(row[header] || '').substring(0, 15);
-            doc.text(value, xPos, yPos);
-            xPos += 40;
+            doc.text(value, xPos, yPos + 1);
+            xPos += colWidth;
           });
           yPos += 6;
         });
-        yPos += 10;
+        
+        if (reportData.raw_data.length > 8) {
+          doc.setFont('helvetica', 'italic');
+          doc.setTextColor(108, 117, 125);
+          doc.text(`... and ${reportData.raw_data.length - 8} more rows`, 22, yPos + 5);
+        }
+        yPos += 15;
       }
       
-      // SQL Query (new page if needed)
-      if (yPos > 250) {
+      // SQL Query Section (new page if needed)
+      if (yPos > 220) {
         doc.addPage();
+        doc.setFont('helvetica');
         yPos = 20;
       }
       
+      doc.setFillColor(248, 249, 250);
+      doc.rect(15, yPos - 5, 180, 8, 'F');
       doc.setFontSize(14);
-      doc.setFont(undefined, 'bold');
-      doc.text('SQL Query Executed:', 20, yPos);
-      yPos += 10;
-      doc.setFont(undefined, 'normal');
-      doc.setFontSize(9);
-      const sqlLines = doc.splitTextToSize(reportData.sql_query, 170);
-      doc.text(sqlLines, 20, yPos);
-      yPos += sqlLines.length * 5 + 10;
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(52, 73, 94);
+      doc.text('SQL Query Executed', 20, yPos);
+      yPos += 15;
       
-      // Footer
-      doc.setFontSize(10);
-      doc.text(`Generated: ${new Date(reportData.generated_at).toLocaleString()}`, 20, yPos);
-      doc.text(`Record Count: ${reportData.record_count}`, 20, yPos + 7);
+      // SQL code block
+      doc.setFillColor(40, 44, 52); // Dark background
+      const sqlHeight = Math.max(25, Math.ceil(reportData.sql_query.length / 60) * 4);
+      doc.rect(20, yPos - 5, 160, sqlHeight, 'F');
+      
+      doc.setFont('courier', 'normal'); // Monospace font
+      doc.setFontSize(8);
+      doc.setTextColor(152, 195, 121); // Green text (like code editor)
+      const sqlLines = doc.splitTextToSize(reportData.sql_query, 150);
+      doc.text(sqlLines, 25, yPos + 5);
+      yPos += sqlHeight + 20;
+      
+      // Footer with border
+      doc.setDrawColor(200, 200, 200);
+      doc.line(20, yPos - 5, 190, yPos - 5); // Horizontal line
+      
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(9);
+      doc.setTextColor(108, 117, 125); // Gray text
+      doc.text(`Generated: ${new Date(reportData.generated_at).toLocaleString()}`, 20, yPos + 5);
+      doc.text(`Record Count: ${reportData.record_count}`, 20, yPos + 12);
+      doc.text(`Amazon Q Developer - SQL Assistant`, 120, yPos + 5);
       
       // Download PDF
       doc.save(`executive-report-${Date.now()}.pdf`);
