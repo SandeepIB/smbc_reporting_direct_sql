@@ -101,6 +101,128 @@ function App() {
     }
   };
 
+  const downloadReport = async (message) => {
+    try {
+      // Get the original user question from the message
+      const userQuestion = message.originalQuestion || 
+        (message.sender === 'user' ? message.text : 'Data analysis query');
+      
+      const reportData = await chatService.generateReport(
+        userQuestion,
+        message.sqlQuery,
+        message.rawData,
+        sessionId
+      );
+      
+      // Import jsPDF dynamically
+      const { jsPDF } = await import('jspdf');
+      const doc = new jsPDF();
+      
+      // Title
+      doc.setFontSize(18);
+      doc.setFont(undefined, 'bold');
+      doc.text('Executive Report – Counterparty & Exposure Insights', 20, 20);
+      
+      let yPos = 40;
+      
+      // User Question
+      doc.setFontSize(14);
+      doc.setFont(undefined, 'bold');
+      doc.text('User Question:', 20, yPos);
+      yPos += 10;
+      doc.setFont(undefined, 'normal');
+      doc.setFontSize(11);
+      const questionLines = doc.splitTextToSize(reportData.question, 170);
+      doc.text(questionLines, 20, yPos);
+      yPos += questionLines.length * 7 + 10;
+      
+      // Data Sources
+      doc.setFontSize(14);
+      doc.setFont(undefined, 'bold');
+      doc.text('Data Sources:', 20, yPos);
+      yPos += 10;
+      doc.setFont(undefined, 'normal');
+      doc.setFontSize(11);
+      const sources = reportData.data_sources || ['counterparty_new', 'trade_new', 'concentration_new'];
+      sources.forEach(source => {
+        doc.text(`• ${source}`, 25, yPos);
+        yPos += 7;
+      });
+      yPos += 10;
+      
+      // Executive Summary
+      doc.setFontSize(14);
+      doc.setFont(undefined, 'bold');
+      doc.text('Executive Summary:', 20, yPos);
+      yPos += 10;
+      doc.setFont(undefined, 'normal');
+      doc.setFontSize(11);
+      const summaryLines = doc.splitTextToSize(reportData.executive_summary, 170);
+      doc.text(summaryLines, 20, yPos);
+      yPos += summaryLines.length * 7 + 15;
+      
+      // Tabular Results
+      if (reportData.raw_data && reportData.raw_data.length > 0) {
+        doc.setFontSize(14);
+        doc.setFont(undefined, 'bold');
+        doc.text('Query Results:', 20, yPos);
+        yPos += 10;
+        
+        // Table headers
+        const headers = Object.keys(reportData.raw_data[0]);
+        doc.setFontSize(10);
+        doc.setFont(undefined, 'bold');
+        let xPos = 20;
+        headers.forEach(header => {
+          doc.text(header, xPos, yPos);
+          xPos += 40;
+        });
+        yPos += 7;
+        
+        // Table data (first 10 rows)
+        doc.setFont(undefined, 'normal');
+        reportData.raw_data.slice(0, 10).forEach(row => {
+          xPos = 20;
+          headers.forEach(header => {
+            const value = String(row[header] || '').substring(0, 15);
+            doc.text(value, xPos, yPos);
+            xPos += 40;
+          });
+          yPos += 6;
+        });
+        yPos += 10;
+      }
+      
+      // SQL Query (new page if needed)
+      if (yPos > 250) {
+        doc.addPage();
+        yPos = 20;
+      }
+      
+      doc.setFontSize(14);
+      doc.setFont(undefined, 'bold');
+      doc.text('SQL Query Executed:', 20, yPos);
+      yPos += 10;
+      doc.setFont(undefined, 'normal');
+      doc.setFontSize(9);
+      const sqlLines = doc.splitTextToSize(reportData.sql_query, 170);
+      doc.text(sqlLines, 20, yPos);
+      yPos += sqlLines.length * 5 + 10;
+      
+      // Footer
+      doc.setFontSize(10);
+      doc.text(`Generated: ${new Date(reportData.generated_at).toLocaleString()}`, 20, yPos);
+      doc.text(`Record Count: ${reportData.record_count}`, 20, yPos + 7);
+      
+      // Download PDF
+      doc.save(`executive-report-${Date.now()}.pdf`);
+      
+    } catch (error) {
+      console.error('Error generating report:', error);
+      alert('Failed to generate report: ' + error.message);
+    }
+  };
+
   const refineMessage = async (originalQuestion, feedback) => {
     try {
       const response = await chatService.refineMessage(originalQuestion, feedback, sessionId);
@@ -141,6 +263,7 @@ function App() {
         onSendMessage={sendMessage}
         onConfirmQuestion={confirmQuestion}
         onRefineMessage={refineMessage}
+        onDownloadReport={downloadReport}
         isLoading={isLoading}
       />
     </div>

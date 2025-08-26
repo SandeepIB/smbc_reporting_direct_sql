@@ -8,18 +8,8 @@ class AIService:
         self.client = OpenAI(api_key=self.config.OPENAI_API_KEY)
     
     def question_to_sql(self, question: str, schema: str) -> str:
-        # Handle common patterns first
+        # Handle system queries only
         question_lower = question.lower()
-        
-        # Basic counterparty queries that should work
-        if "counterpart" in question_lower:
-            if "risk" in question_lower or "high" in question_lower:
-                # First try to find high risk, if none exist, show top 5 by exposure
-                return "SELECT counterparty_name, internal_rating, mpe FROM counterparty_new WHERE internal_rating IS NOT NULL AND internal_rating != '' ORDER BY CAST(mpe AS DECIMAL) DESC LIMIT 5;"
-            elif "5" in question_lower or "top" in question_lower:
-                return "SELECT counterparty_name FROM counterparty_new LIMIT 5;"
-            else:
-                return "SELECT counterparty_name FROM counterparty_new LIMIT 10;"
         
         # MySQL system queries
         if (("show" in question_lower or "all" in question_lower) and "users" in question_lower):
@@ -40,23 +30,33 @@ class AIService:
         
         # Regular data queries
         prompt = f"""
-Generate MySQL query for this question using the exact schema provided.
+Generate MySQL query using the exact schema provided.
 
 Schema: {schema}
 Question: {question}
 
-Key Tables:
-- counterparty_new: has counterparty_name, internal_rating, mpe, epe columns
-- concentration_new: has concentration_value, entity columns  
-- trade_new: has notional_usd, asset_class, maturity_date columns
+IMPORTANT TABLE RELATIONSHIPS:
+- counterparty_sector is in counterparty_new table, NOT in trade_new
+- To get sector info for trades: JOIN trade_new with counterparty_new using reporting_counterparty_id = counterparty_id
+- asset_class is in trade_new for trade categorization
 
-Rules:
-- Return ONLY the SQL query
-- For "high risk" use internal_rating column in counterparty_new
-- For "counterparty names" use counterparty_name from counterparty_new
-- For "top 5" add LIMIT 5
-- Use exact column names from schema
-- Keep queries simple
+For sector analysis example:
+```sql
+SELECT 
+  c.counterparty_sector,
+  COUNT(t.trade_id) as trade_count
+FROM trade_new t
+JOIN counterparty_new c ON t.reporting_counterparty_id = c.counterparty_id
+GROUP BY c.counterparty_sector;
+```
+
+Key rules:
+- Use JOINs when data spans multiple tables
+- Check column exists in correct table before using
+- For sectors: use counterparty_new.counterparty_sector
+- For trades: use trade_new columns
+
+Return ONLY the SQL query:
 
 SQL:"""
 
@@ -294,6 +294,49 @@ Return only the corrected SQL query, no explanation:"""
             
         except Exception as e:
             return None
+    
+    def generate_executive_summary(self, question: str, sql_query: str, results: list) -> str:
+        """Generate executive summary for report"""
+        # Prepare data for analysis
+        data_sample = ""
+        if results:
+            if hasattr(results[0], '_fields'):
+                sample_rows = []
+                for row in results[:5]:
+                    row_dict = {col: getattr(row, col) for col in row._fields}
+                    sample_rows.append(str(row_dict))
+                data_sample = "\n".join(sample_rows)
+            else:
+                data_sample = "\n".join([str(row) for row in results[:5]])
+        
+        prompt = f"""
+Generate a concise executive summary for this database query result.
+
+Question: {question}
+Data Results: {data_sample}
+Total Records: {len(results)}
+
+Write a professional executive summary that:
+- Highlights key findings and trends
+- Mentions specific numbers/values from the data
+- Identifies risks or business implications
+- Uses financial/risk terminology
+- Keep it 2-3 sentences maximum
+
+Executive Summary:"""
+
+        try:
+            response = self.client.chat.completions.create(
+                model="gpt-4o-mini",
+                messages=[{"role": "user", "content": prompt}],
+                temperature=0.1,
+                max_tokens=150
+            )
+            
+            return response.choices[0].message.content.strip()
+            
+        except Exception as e:
+            return f"Analysis of {len(results)} records shows key business insights related to the query."
     
     def generate_executive_report(self, question: str, sql_query: str, results: list, row_count: int) -> str:
         """Generate comprehensive executive summary report"""

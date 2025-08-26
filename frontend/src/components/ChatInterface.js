@@ -175,13 +175,60 @@ const RefinementSection = ({ message, onRefine, isRefining }) => {
   );
 };
 
+// Download report component
+const DownloadReportSection = ({ message, onDownloadReport, isGenerating }) => {
+  if (!message.sqlQuery || !message.rawData) return null;
+  
+  return (
+    <div className="mt-3 p-3 bg-green-50 rounded-lg border border-green-200">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <svg className="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+          </svg>
+          <span className="text-sm font-medium text-green-800">Executive Report Available</span>
+        </div>
+        <button
+          onClick={() => onDownloadReport(message)}
+          disabled={isGenerating}
+          className="inline-flex items-center gap-2 px-3 py-1.5 bg-green-600 text-white text-sm font-medium rounded hover:bg-green-700 disabled:opacity-50 transition-colors"
+        >
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M9 19l3 3m0 0l3-3m-3 3V10" />
+          </svg>
+          {isGenerating ? 'Generating...' : 'Download Report'}
+        </button>
+      </div>
+    </div>
+  );
+};
+
 // Expandable details component
-const MessageDetails = ({ sqlQuery, rawData, rowCount, isExpanded }) => {
+const MessageDetails = ({ sqlQuery, rawData, rowCount, dataSources, isExpanded }) => {
   if (!isExpanded) return null;
 
   return (
     <div className="mt-3 p-3 bg-gray-50 rounded-lg border border-gray-200">
       <div className="space-y-3">
+        {/* Data Sources Section */}
+        {dataSources && dataSources.length > 0 && (
+          <div>
+            <h4 className="text-sm font-semibold text-gray-700 mb-2">Data Sources:</h4>
+            <div className="bg-blue-50 p-3 rounded border border-blue-200">
+              <ul className="text-sm text-gray-700 space-y-1">
+                {dataSources.map((source, index) => (
+                  <li key={index} className="flex items-center gap-2">
+                    <svg className="w-3 h-3 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M3 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V4zm0 4a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H4a1 1 0 01-1-1V8zm8 0a1 1 0 011-1h4a1 1 0 011 1v2a1 1 0 01-1 1h-4a1 1 0 01-1-1V8z" clipRule="evenodd" />
+                    </svg>
+                    {source}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
+        )}
+        
         {/* SQL Query Section */}
         <div>
           <h4 className="text-sm font-semibold text-gray-700 mb-2">SQL Query:</h4>
@@ -236,11 +283,12 @@ const MessageDetails = ({ sqlQuery, rawData, rowCount, isExpanded }) => {
   );
 };
 
-const ChatInterface = ({ messages, onSendMessage, onConfirmQuestion, onRefineMessage, isLoading }) => {
+const ChatInterface = ({ messages, onSendMessage, onConfirmQuestion, onRefineMessage, onDownloadReport, isLoading }) => {
   const [inputValue, setInputValue] = useState('');
   const [expandedMessages, setExpandedMessages] = useState(new Set());
   const [isRefining, setIsRefining] = useState(false);
   const [isConfirming, setIsConfirming] = useState(false);
+  const [isGeneratingReport, setIsGeneratingReport] = useState(false);
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
 
@@ -295,6 +343,15 @@ const ChatInterface = ({ messages, onSendMessage, onConfirmQuestion, onRefineMes
     }
   };
 
+  const handleDownloadReport = async (message) => {
+    setIsGeneratingReport(true);
+    try {
+      await onDownloadReport(message);
+    } finally {
+      setIsGeneratingReport(false);
+    }
+  };
+
   return (
     <div className="chat-interface">
       {/* Header */}
@@ -336,6 +393,14 @@ const ChatInterface = ({ messages, onSendMessage, onConfirmQuestion, onRefineMes
                     rawData={message.rawData}
                     rowCount={message.rowCount}
                     isExpanded={expandedMessages.has(message.id)}
+                  />
+                )}
+                
+                {message.sender === 'bot' && message.success && message.sqlQuery && (
+                  <DownloadReportSection
+                    message={message}
+                    onDownloadReport={handleDownloadReport}
+                    isGenerating={isGeneratingReport}
                   />
                 )}
                 

@@ -22,7 +22,7 @@ if [ ! -f ".env" ]; then
     exit 1
 fi
 
-# Start the backend server
-echo "Starting FastAPI server on http://localhost:8000"
+# Start the backend server with auto-reload
+echo "Starting FastAPI server on http://localhost:8000 (with auto-reload)"
 cd backend
-python main.py
+uvicorn main:app --host 0.0.0.0 --port 8000 --reload

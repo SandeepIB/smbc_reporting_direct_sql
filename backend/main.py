@@ -69,6 +69,12 @@ class RefineRequest(BaseModel):
     feedback: str
     session_id: str
 
+class ReportRequest(BaseModel):
+    question: str
+    sql_query: str
+    raw_data: list
+    session_id: str
+
 class ChatResponse(BaseModel):
     response: str
     sql_query: str = None
@@ -80,6 +86,7 @@ class ChatResponse(BaseModel):
     needs_refinement: bool = False
     needs_confirmation: bool = False
     interpreted_question: dict = None
+    data_sources: list = None
 
 # Global instances
 config = Config()
@@ -225,13 +232,18 @@ async def confirm_question(request: ConfirmRequest):
         if request.session_id not in sessions:
             raise HTTPException(status_code=404, detail="Session not found")
         
-        pending = sessions[request.session_id].get("pending_confirmation")
+        session_data = sessions.get(request.session_id, {})
+        pending = session_data.get("pending_confirmation")
         if not pending:
             raise HTTPException(status_code=400, detail="No pending confirmation")
         
         if request.confirmed:
             # User confirmed - execute the query
-            original_question = pending["original_question"]
+            original_question = pending.get("original_question", "")
+            
+            # Clear pending confirmation first
+            if "pending_confirmation" in sessions[request.session_id]:
+                del sessions[request.session_id]["pending_confirmation"]
             
             # Generate SQL query
             sql_query = ai_service.question_to_sql(original_question, schema)
@@ -255,6 +267,16 @@ async def confirm_question(request: ConfirmRequest):
                         else:
                             raw_data_serializable.append(dict(row) if hasattr(row, 'keys') else str(row))
                 
+                # Extract data sources
+                data_sources = []
+                sql_lower = sql_query.lower()
+                if 'counterparty_new' in sql_lower:
+                    data_sources.append('counterparty_new')
+                if 'trade_new' in sql_lower:
+                    data_sources.append('trade_new')
+                if 'concentration_new' in sql_lower:
+                    data_sources.append('concentration_new')
+                
                 # Store in session history
                 sessions[request.session_id]["history"].append({
                     "question": original_question,
@@ -262,12 +284,10 @@ async def confirm_question(request: ConfirmRequest):
                     "response": natural_response,
                     "raw_data": raw_data_serializable,
                     "row_count": result['row_count'],
+                    "data_sources": data_sources,
                     "timestamp": datetime.now().isoformat(),
                     "success": True
                 })
-                
-                # Clear pending confirmation
-                del sessions[request.session_id]["pending_confirmation"]
                 
                 return ChatResponse(
                     response=natural_response,
@@ -276,11 +296,13 @@ async def confirm_question(request: ConfirmRequest):
                     row_count=result['row_count'],
                     success=True,
                     session_id=request.session_id,
-                    timestamp=datetime.now().isoformat()
+                    timestamp=datetime.now().isoformat(),
+                    data_sources=data_sources
                 )
             else:
                 # Clear pending confirmation
-                del sessions[request.session_id]["pending_confirmation"]
+                if "pending_confirmation" in sessions[request.session_id]:
+                    del sessions[request.session_id]["pending_confirmation"]
                 
                 return ChatResponse(
                     response=f"Query failed: {result['error']}",
@@ -291,7 +313,8 @@ async def confirm_question(request: ConfirmRequest):
                 )
         else:
             # User declined - ask for clarification
-            del sessions[request.session_id]["pending_confirmation"]
+            if "pending_confirmation" in sessions[request.session_id]:
+                del sessions[request.session_id]["pending_confirmation"]
             
             return ChatResponse(
                 response="Please rephrase or clarify your question.",
@@ -300,6 +323,12 @@ async def confirm_question(request: ConfirmRequest):
                 timestamp=datetime.now().isoformat()
             )
             
+    except KeyError as e:
+        logger.error(f"KeyError in confirmation: {e}")
+        # Reset session state
+        if request.session_id in sessions:
+            sessions[request.session_id].pop("pending_confirmation", None)
+        raise HTTPException(status_code=500, detail=f"Session error: {str(e)}")
     except Exception as e:
         logger.error(f"Error confirming question: {e}")
         raise HTTPException(status_code=500, detail=str(e))
@@ -317,6 +346,58 @@ async def refine_question(request: RefineRequest):
         
     except Exception as e:
         logger.error(f"Error refining question: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/generate-report")
+async def generate_report(request: ReportRequest):
+    """Generate executive report"""
+    try:
+        # Convert raw data back to result-like objects for AI processing
+        mock_results = []
+        if request.raw_data:
+            for row_data in request.raw_data:
+                # Create a simple object with the data
+                class MockRow:
+                    def __init__(self, data):
+                        for key, value in data.items():
+                            setattr(self, key, value)
+                        self._fields = list(data.keys())
+                mock_results.append(MockRow(row_data))
+        
+        # Generate executive summary
+        executive_summary = ai_service.generate_executive_summary(
+            request.question, request.sql_query, mock_results
+        )
+        
+        # Extract data sources from SQL query
+        data_sources = []
+        sql_lower = request.sql_query.lower()
+        if 'counterparty_new' in sql_lower:
+            data_sources.append('counterparty_new (Counterparty master data)')
+        if 'trade_new' in sql_lower:
+            data_sources.append('trade_new (Trade transaction data)')
+        if 'concentration_new' in sql_lower:
+            data_sources.append('concentration_new (Risk concentration metrics)')
+        
+        if not data_sources:
+            data_sources = ['Database tables (source analysis from SQL query)']
+        
+        # Create report data
+        report_data = {
+            "title": "Executive Report – Counterparty & Exposure Insights",
+            "question": request.question,
+            "sql_query": request.sql_query,
+            "raw_data": request.raw_data,
+            "executive_summary": executive_summary,
+            "data_sources": data_sources,
+            "generated_at": datetime.now().isoformat(),
+            "record_count": len(request.raw_data)
+        }
+        
+        return report_data
+        
+    except Exception as e:
+        logger.error(f"Error generating report: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.post("/schema/refresh")
