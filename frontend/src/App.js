@@ -117,6 +117,9 @@ function App() {
         userQuestion = userMessages.length > 0 ? userMessages[userMessages.length - 1].text : 'Data analysis query';
       }
       
+      // Clean the question text to remove any problematic Unicode characters
+      userQuestion = userQuestion.replace(/[^\x00-\x7F]/g, '').trim();
+      
       const reportData = await chatService.generateReport(
         userQuestion,
         message.sqlQuery,
