@@ -285,16 +285,13 @@ function App() {
       doc.text('SQL Query Executed', 20, yPos);
       yPos += 15;
       
-      // SQL code block
-      doc.setFillColor(40, 44, 52); // Dark background
-      const sqlHeight = Math.max(25, Math.ceil(reportData.sql_query.length / 60) * 4);
-      doc.rect(20, yPos - 5, 160, sqlHeight, 'F');
-      
+      // SQL code block without background
       doc.setFont('courier', 'normal'); // Monospace font
-      doc.setFontSize(8);
-      doc.setTextColor(152, 195, 121); // Green text (like code editor)
-      const sqlLines = doc.splitTextToSize(reportData.sql_query, 150);
-      doc.text(sqlLines, 25, yPos + 5);
+      doc.setFontSize(10);
+      doc.setTextColor(0, 0, 0); // Black text
+      const sqlLines = doc.splitTextToSize(reportData.sql_query, 170);
+      doc.text(sqlLines, 20, yPos);
+      const sqlHeight = sqlLines.length * 6;
       yPos += sqlHeight + 20;
       
       // Footer with border
