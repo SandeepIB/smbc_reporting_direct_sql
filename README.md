@@ -17,9 +17,23 @@ A full-stack application that converts natural language questions into SQL queri
 
 ## Setup
 
-1. Install dependencies:
+1. Install backend dependencies:
 ```bash
 pip install -r requirements.txt
+```
+
+2. Setup frontend (with security fixes):
+```bash
+# Option 1: Complete setup with security fixes
+./setup_frontend.sh
+
+# Option 2: Quick vulnerability fix (if already installed)
+./fix_npm_vulnerabilities.sh
+
+# Option 3: Manual setup
+cd frontend
+npm install --legacy-peer-deps
+npm audit fix
 ```
 
 2. Configure environment variables in `.env`:
