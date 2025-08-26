@@ -73,6 +73,10 @@ function App() {
     try {
       const response = await chatService.confirmQuestion(confirmed, sessionId);
       
+      // Find the original user question from the last confirmation request
+      const lastConfirmationMessage = messages.slice().reverse().find(m => m.needsConfirmation);
+      const originalQuestion = lastConfirmationMessage?.originalQuestion || 'Data analysis query';
+      
       // Add confirmation response
       const confirmMessage = {
         id: Date.now(),
@@ -83,7 +87,8 @@ function App() {
         rawData: response.raw_data,
         rowCount: response.row_count,
         success: response.success,
-        needsRefinement: response.needs_refinement
+        needsRefinement: response.needs_refinement,
+        originalQuestion: originalQuestion
       };
       
       setMessages(prev => [...prev, confirmMessage]);
@@ -103,9 +108,14 @@ function App() {
 
   const downloadReport = async (message) => {
     try {
-      // Get the original user question from the message
-      const userQuestion = message.originalQuestion || 
-        (message.sender === 'user' ? message.text : 'Data analysis query');
+      // Get the original user question from the message or find it from message history
+      let userQuestion = message.originalQuestion;
+      
+      // If no originalQuestion, try to find the most recent user message
+      if (!userQuestion) {
+        const userMessages = messages.filter(m => m.sender === 'user');
+        userQuestion = userMessages.length > 0 ? userMessages[userMessages.length - 1].text : 'Data analysis query';
+      }
       
       const reportData = await chatService.generateReport(
         userQuestion,
