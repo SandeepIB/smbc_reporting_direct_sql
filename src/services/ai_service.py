@@ -90,6 +90,37 @@ SQL:"""
             
         return sql_query
     
+    def format_sql(self, sql_query: str) -> str:
+        """Format SQL query for better readability"""
+        if not sql_query:
+            return sql_query
+        
+        # Basic SQL formatting
+        formatted = sql_query.upper()
+        
+        # Add line breaks after major keywords
+        keywords = ['SELECT', 'FROM', 'WHERE', 'JOIN', 'LEFT JOIN', 'RIGHT JOIN', 'INNER JOIN', 
+                   'GROUP BY', 'ORDER BY', 'HAVING', 'UNION', 'AND', 'OR']
+        
+        for keyword in keywords:
+            formatted = formatted.replace(f' {keyword} ', f'\n{keyword} ')
+        
+        # Clean up and add proper indentation
+        lines = [line.strip() for line in formatted.split('\n') if line.strip()]
+        formatted_lines = []
+        
+        for line in lines:
+            if line.startswith(('SELECT', 'FROM', 'WHERE', 'GROUP BY', 'ORDER BY', 'HAVING', 'UNION')):
+                formatted_lines.append(line)
+            elif line.startswith(('JOIN', 'LEFT JOIN', 'RIGHT JOIN', 'INNER JOIN')):
+                formatted_lines.append(f'  {line}')
+            elif line.startswith(('AND', 'OR')):
+                formatted_lines.append(f'  {line}')
+            else:
+                formatted_lines.append(f'  {line}')
+        
+        return '\n'.join(formatted_lines)
+    
     def interpret_question(self, question: str) -> dict:
         """Provide structured interpretation of user question"""
         prompt = f"""

@@ -247,6 +247,7 @@ async def confirm_question(request: ConfirmRequest):
             
             # Generate SQL query
             sql_query = ai_service.question_to_sql(original_question, schema)
+            formatted_sql = ai_service.format_sql(sql_query)
             
             # Execute query
             result = db_manager.execute_query(sql_query)
@@ -291,7 +292,7 @@ async def confirm_question(request: ConfirmRequest):
                 
                 return ChatResponse(
                     response=natural_response,
-                    sql_query=sql_query,
+                    sql_query=formatted_sql,
                     raw_data=raw_data_serializable,
                     row_count=result['row_count'],
                     success=True,
@@ -306,7 +307,7 @@ async def confirm_question(request: ConfirmRequest):
                 
                 return ChatResponse(
                     response=f"Query failed: {result['error']}",
-                    sql_query=sql_query,
+                    sql_query=formatted_sql,
                     success=False,
                     session_id=request.session_id,
                     timestamp=datetime.now().isoformat()

@@ -232,8 +232,8 @@ const MessageDetails = ({ sqlQuery, rawData, rowCount, dataSources, isExpanded }
         {/* SQL Query Section */}
         <div>
           <h4 className="text-sm font-semibold text-gray-700 mb-2">SQL Query:</h4>
-          <div className="bg-gray-800 text-green-400 p-3 rounded text-sm font-mono overflow-x-auto">
-            {sqlQuery}
+          <div className="bg-gray-900 text-green-400 p-4 rounded-lg text-sm font-mono overflow-x-auto border border-gray-700">
+            <pre className="whitespace-pre-wrap leading-relaxed">{sqlQuery}</pre>
           </div>
         </div>
 

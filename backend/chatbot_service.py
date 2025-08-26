@@ -42,6 +42,7 @@ class ChatbotService:
         try:
             # Generate SQL query
             sql_query = self.ai_service.question_to_sql(question, self.schema)
+            formatted_sql = self.ai_service.format_sql(sql_query)
             
             # Execute query
             result = self.db_manager.execute_query(sql_query)
@@ -55,7 +56,7 @@ class ChatbotService:
                 return {
                     "success": True,
                     "response": natural_response,
-                    "sql_query": sql_query,
+                    "sql_query": formatted_sql,
                     "data": result["data"],
                     "row_count": result["row_count"]
                 }
@@ -63,7 +64,7 @@ class ChatbotService:
                 return {
                     "success": False,
                     "response": f"Query failed: {result['error']}",
-                    "sql_query": sql_query,
+                    "sql_query": formatted_sql,
                     "error": result["error"]
                 }
                 
