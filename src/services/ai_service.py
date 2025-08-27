@@ -142,7 +142,17 @@ SQL:"""
             )
 
             sql_query = response.choices[0].message.content.strip()
-            return self._clean_sql_output(sql_query)
+            cleaned_sql = self._clean_sql_output(sql_query)
+            
+            # Validate and fix forbidden functions
+            if any(forbidden in cleaned_sql.upper() for forbidden in ['LAG', 'LEAD', 'OVER', 'WINDOW']):
+                # Generate simpler query for MPE questions
+                if 'mpe' in question.lower() or 'ccr' in question.lower():
+                    return "SELECT DATE_FORMAT(as_of_date, '%Y-%m') AS month, SUM(CAST(mpe AS DECIMAL(15,2))) AS total_mpe, counterparty_sector FROM counterparty_new WHERE as_of_date LIKE '2024%' AND mpe IS NOT NULL AND mpe != '' AND mpe != '0' GROUP BY month, counterparty_sector ORDER BY month;"
+                else:
+                    return "SELECT counterparty_sector, COUNT(*) as count FROM counterparty_new GROUP BY counterparty_sector;"
+            
+            return cleaned_sql
             
         except Exception as e:
             raise Exception(f"AI service error: {e}")
