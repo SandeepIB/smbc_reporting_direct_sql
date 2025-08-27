@@ -41,6 +41,7 @@ IMPORTANT TABLE RELATIONSHIPS AND COLUMN LOCATIONS:
 - To get sector info for trades: JOIN trade_new with counterparty_new using reporting_counterparty_id = counterparty_id
 - To get concentration data: use concentration_new table
 - asset_class is in trade_new for trade categorization
+- Window functions like LAG require proper OVER clause syntax
 
 For sector analysis example:
 ```sql
@@ -61,14 +62,26 @@ FROM concentration_new
 GROUP BY concentration_group;
 ```
 
+For time series analysis example:
+```sql
+SELECT 
+  DATE_FORMAT(as_of_date, '%Y-%m') AS month,
+  SUM(CAST(notional_usd AS DECIMAL(15,2))) as monthly_notional
+FROM trade_new
+WHERE YEAR(as_of_date) = 2024
+GROUP BY month
+ORDER BY month;
+```
+
 Key rules:
 - NEVER use counterparty_count from counterparty_new (it doesn't exist there)
 - counterparty_count is ONLY in concentration_new table
-- Use JOINs when data spans multiple tables
+- Use simple aggregations instead of complex window functions
+- For time analysis, use DATE_FORMAT and GROUP BY
 - Check column exists in correct table before using
 - For sectors: use counterparty_new.counterparty_sector
 - For concentration: use concentration_new.counterparty_count
-- For trades: use trade_new columns
+- For trades: use trade_new columns (notional_usd, trade_id, etc.)
 
 Return ONLY the SQL query:
 
