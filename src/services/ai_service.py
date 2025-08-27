@@ -73,15 +73,24 @@ GROUP BY month
 ORDER BY month;
 ```
 
-Key rules:
+CRITICAL RESTRICTIONS:
+- NEVER use LAG, LEAD, or any window functions
+- NEVER use OVER clause
 - NEVER use counterparty_count from counterparty_new (it doesn't exist there)
 - counterparty_count is ONLY in concentration_new table
-- Use simple aggregations instead of complex window functions
-- For time analysis, use DATE_FORMAT and GROUP BY
+- Use ONLY basic SELECT, COUNT, SUM, AVG, MAX, MIN
+- For time comparisons, use separate queries or subqueries
+- Always use simple GROUP BY aggregations
+
+Key rules:
 - Check column exists in correct table before using
 - For sectors: use counterparty_new.counterparty_sector
 - For concentration: use concentration_new.counterparty_count
 - For trades: use trade_new columns (notional_usd, trade_id, etc.)
+- Keep queries simple and avoid complex analytical functions
+
+FORBIDDEN FUNCTIONS: LAG, LEAD, OVER, WINDOW functions
+USE ONLY: SELECT, FROM, WHERE, JOIN, GROUP BY, ORDER BY, COUNT, SUM, AVG
 
 Return ONLY the SQL query:
 
