@@ -35,15 +35,21 @@ Generate MySQL query using the exact schema provided.
 Schema: {schema}
 Question: {question}
 
-IMPORTANT TABLE RELATIONSHIPS AND COLUMN LOCATIONS:
-- counterparty_sector is in counterparty_new table, NOT in trade_new
-- counterparty_count is in concentration_new table, NOT in counterparty_new
-- To get sector info for trades: JOIN trade_new with counterparty_new using reporting_counterparty_id = counterparty_id
-- To get concentration data: use concentration_new table
-- asset_class is in trade_new for trade categorization
-- Window functions like LAG require proper OVER clause syntax
+CRITICAL TABLE AND COLUMN MAPPING:
 
-For sector analysis example:
+TRADE_NEW table has: trade_id, notional_usd, batch_mtm, as_of_date, reporting_counterparty_id
+COUNTERPARTY_NEW table has: counterparty_id, counterparty_sector, counterparty_name, mpe, mpe_limit
+CONCENTRATION_NEW table has: counterparty_count, concentration_group, entity
+
+IMPORTANT:
+- MPE (Market Price Exposure) is in counterparty_new table
+- counterparty_sector is ONLY in counterparty_new table
+- counterparty_count is ONLY in concentration_new table
+- For CCR portfolio exposure questions, use mpe from counterparty_new
+- Always filter out NULL, empty, and zero values: mpe IS NOT NULL AND mpe != '' AND mpe != '0'
+- Use correct aliases: t=trade_new, c=counterparty_new, con=concentration_new
+
+CORRECT sector analysis example:
 ```sql
 SELECT 
   c.counterparty_sector,
@@ -53,13 +59,13 @@ JOIN counterparty_new c ON t.reporting_counterparty_id = c.counterparty_id
 GROUP BY c.counterparty_sector;
 ```
 
-For concentration analysis example:
+CORRECT concentration analysis example:
 ```sql
 SELECT 
-  concentration_group,
-  SUM(CAST(counterparty_count AS UNSIGNED)) as total_count
-FROM concentration_new
-GROUP BY concentration_group;
+  con.concentration_group,
+  SUM(CAST(con.counterparty_count AS UNSIGNED)) as total_count
+FROM concentration_new con
+GROUP BY con.concentration_group;
 ```
 
 For time series analysis example:
@@ -73,6 +79,34 @@ GROUP BY month
 ORDER BY month;
 ```
 
+For MPE/CCR exposure analysis:
+```sql
+SELECT 
+  DATE_FORMAT(as_of_date, '%Y-%m') AS month,
+  SUM(CAST(mpe AS DECIMAL(15,2))) AS total_mpe,
+  counterparty_sector
+FROM counterparty_new
+WHERE as_of_date LIKE '2024%' 
+  AND mpe IS NOT NULL 
+  AND mpe != '' 
+  AND mpe != '0'
+GROUP BY month, counterparty_sector
+ORDER BY month;
+```
+
+For simple data exploration:
+```sql
+SELECT 
+  c.counterparty_sector,
+  SUM(CAST(t.notional_usd AS DECIMAL(15,2))) as total_notional
+FROM trade_new t
+JOIN counterparty_new c ON t.reporting_counterparty_id = c.counterparty_id
+WHERE t.notional_usd IS NOT NULL
+GROUP BY c.counterparty_sector
+ORDER BY total_notional DESC
+LIMIT 10;
+```
+
 CRITICAL RESTRICTIONS:
 - NEVER use LAG, LEAD, or any window functions
 - NEVER use OVER clause
@@ -81,6 +115,9 @@ CRITICAL RESTRICTIONS:
 - Use ONLY basic SELECT, COUNT, SUM, AVG, MAX, MIN
 - For time comparisons, use separate queries or subqueries
 - Always use simple GROUP BY aggregations
+- AVOID complex 3-table JOINs - use 2 tables maximum
+- Always add WHERE clauses to filter NULL values
+- Use LIMIT to ensure results are returned
 
 Key rules:
 - Check column exists in correct table before using
