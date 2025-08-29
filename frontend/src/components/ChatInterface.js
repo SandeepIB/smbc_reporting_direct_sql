@@ -80,6 +80,27 @@ const ConfirmationSection = ({ message, onConfirm, isConfirming }) => {
             </div>
           </div>
           
+          {/* Intent Array Section */}
+          {interpretation?.intent_array && interpretation.intent_array.length > 0 && (
+            <div className="mt-4 p-4 bg-gradient-to-r from-indigo-50 to-blue-50 rounded-lg border border-indigo-200">
+              <div className="flex items-center gap-2 mb-3">
+                <div className="flex-shrink-0 w-6 h-6 bg-indigo-100 rounded-full flex items-center justify-center">
+                  <svg className="w-3 h-3 text-indigo-600" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M3 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V4zm0 4a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H4a1 1 0 01-1-1V8zm8 0a1 1 0 011-1h4a1 1 0 011 1v2a1 1 0 01-1 1h-4a1 1 0 01-1-1V8z" clipRule="evenodd" />
+                  </svg>
+                </div>
+                <p className="text-sm font-medium text-gray-700">Intent (Array Form):</p>
+              </div>
+              <div className="bg-gray-900 text-green-400 p-3 rounded-lg text-sm font-mono overflow-x-auto">
+                <pre className="whitespace-pre-wrap">
+{`[
+${interpretation.intent_array.map(item => `  "${item}"`).join(',\n')}
+]`}
+                </pre>
+              </div>
+            </div>
+          )}
+          
           <p className="text-sm font-medium text-gray-700 mb-4">Do you want me to proceed with this interpretation?</p>
         </div>
       </div>

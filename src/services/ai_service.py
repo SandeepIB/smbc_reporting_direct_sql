@@ -41,93 +41,49 @@ TRADE_NEW table has: trade_id, notional_usd, batch_mtm, as_of_date, reporting_co
 COUNTERPARTY_NEW table has: counterparty_id, counterparty_sector, counterparty_name, mpe, mpe_limit
 CONCENTRATION_NEW table has: counterparty_count, concentration_group, entity
 
-IMPORTANT:
-- MPE (Market Price Exposure) is in counterparty_new table
-- counterparty_sector is ONLY in counterparty_new table
-- counterparty_count is ONLY in concentration_new table
-- For CCR portfolio exposure questions, use mpe from counterparty_new
-- Always filter out NULL, empty, and zero values: mpe IS NOT NULL AND mpe != '' AND mpe != '0'
-- Use correct aliases: t=trade_new, c=counterparty_new, con=concentration_new
+IMPORTANT RULES:
+- MPE (Market Price Exposure) is ONLY in counterparty_new table.
+- Use MPE filters (mpe IS NOT NULL AND mpe != '' AND mpe != '0') **ONLY** for MPE-related questions.
+- For exposure or trade-related questions (e.g., total notional, sector exposure, trade count), DO NOT apply MPE filters.
+- counterparty_sector is ONLY in counterparty_new table.
+- counterparty_count is ONLY in concentration_new table.
+- For CCR portfolio exposure questions, use mpe from counterparty_new.
 
-CORRECT sector analysis example:
-```sql
-SELECT 
-  c.counterparty_sector,
-  COUNT(t.trade_id) as trade_count
+Use correct aliases: 
+t = trade_new, c = counterparty_new, con = concentration_new
+
+### Examples of correct usage (follow these patterns):
+
+-- Sector analysis:
+SELECT c.counterparty_sector, COUNT(t.trade_id) AS trade_count
 FROM trade_new t
 JOIN counterparty_new c ON t.reporting_counterparty_id = c.counterparty_id
 GROUP BY c.counterparty_sector;
-```
 
-CORRECT concentration analysis example:
-```sql
-SELECT 
-  con.concentration_group,
-  SUM(CAST(con.counterparty_count AS UNSIGNED)) as total_count
+-- Concentration group analysis:
+SELECT con.concentration_group, SUM(CAST(con.counterparty_count AS UNSIGNED)) AS total_count
 FROM concentration_new con
 GROUP BY con.concentration_group;
-```
 
-For time series analysis example:
-```sql
-SELECT 
-  DATE_FORMAT(as_of_date, '%Y-%m') AS month,
-  SUM(CAST(notional_usd AS DECIMAL(15,2))) as monthly_notional
+-- Monthly trend:
+SELECT DATE_FORMAT(as_of_date, '%Y-%m') AS month,
+       SUM(CAST(notional_usd AS DECIMAL(15,2))) AS monthly_notional
 FROM trade_new
 WHERE YEAR(as_of_date) = 2024
 GROUP BY month
 ORDER BY month;
-```
 
-For MPE/CCR exposure analysis:
-```sql
-SELECT 
-  DATE_FORMAT(as_of_date, '%Y-%m') AS month,
-  SUM(CAST(mpe AS DECIMAL(15,2))) AS total_mpe,
-  counterparty_sector
+-- MPE analysis:
+SELECT DATE_FORMAT(as_of_date, '%Y-%m') AS month,
+       SUM(CAST(mpe AS DECIMAL(15,2))) AS total_mpe
 FROM counterparty_new
-WHERE as_of_date LIKE '2024%' 
-  AND mpe IS NOT NULL 
-  AND mpe != '' 
+WHERE as_of_date LIKE '2024%'
+  AND mpe IS NOT NULL
+  AND mpe != ''
   AND mpe != '0'
-GROUP BY month, counterparty_sector
+GROUP BY month
 ORDER BY month;
-```
 
-For simple data exploration:
-```sql
-SELECT 
-  c.counterparty_sector,
-  SUM(CAST(t.notional_usd AS DECIMAL(15,2))) as total_notional
-FROM trade_new t
-JOIN counterparty_new c ON t.reporting_counterparty_id = c.counterparty_id
-WHERE t.notional_usd IS NOT NULL
-GROUP BY c.counterparty_sector
-ORDER BY total_notional DESC
-LIMIT 10;
-```
-
-CRITICAL RESTRICTIONS:
-- NEVER use LAG, LEAD, or any window functions
-- NEVER use OVER clause
-- NEVER use counterparty_count from counterparty_new (it doesn't exist there)
-- counterparty_count is ONLY in concentration_new table
-- Use ONLY basic SELECT, COUNT, SUM, AVG, MAX, MIN
-- For time comparisons, use separate queries or subqueries
-- Always use simple GROUP BY aggregations
-- AVOID complex 3-table JOINs - use 2 tables maximum
-- Always add WHERE clauses to filter NULL values
-- Use LIMIT to ensure results are returned
-
-Key rules:
-- Check column exists in correct table before using
-- For sectors: use counterparty_new.counterparty_sector
-- For concentration: use concentration_new.counterparty_count
-- For trades: use trade_new columns (notional_usd, trade_id, etc.)
-- Keep queries simple and avoid complex analytical functions
-
-FORBIDDEN FUNCTIONS: LAG, LEAD, OVER, WINDOW functions
-USE ONLY: SELECT, FROM, WHERE, JOIN, GROUP BY, ORDER BY, COUNT, SUM, AVG
 
 Return ONLY the SQL query:
 
@@ -249,15 +205,72 @@ Return only valid JSON:"""
             if content.startswith('```json'):
                 content = content.replace('```json', '').replace('```', '').strip()
             
-            return json.loads(content)
+            interpretation = json.loads(content)
+            
+            # Add Intent array
+            interpretation["intent_array"] = self.generate_intent_array(question)
+            
+            return interpretation
             
         except Exception as e:
             # Fallback structure for any parsing errors
             return {
                 "data_requested": f"Analysis of: {question}",
                 "analysis_type": "Data query and analysis", 
-                "context_significance": "Provides business insights from database"
+                "context_significance": "Provides business insights from database",
+                "intent_array": self.generate_intent_array(question)
             }
+    
+    def generate_intent_array(self, question: str) -> list:
+        """Generate flattened Intent array representation from NLQ"""
+        prompt = f"""
+Analyze this natural language question and extract structured intent as a flattened array.
+
+Question: {question}
+
+Extract intent components and return as a JSON array of strings in this format:
+[
+  "entity: [entity_type]",
+  "id: [specific_identifier]", 
+  "metrics: [requested_metric]",
+  "slice.as_of: [date_filter]",
+  "slice.scenario: [scenario_type]"
+]
+
+Rules:
+- entity: Main data entity (Counterparty, Trade, Portfolio, etc.)
+- id: Specific identifier if mentioned (counterparty name, trade ID, etc.)
+- metrics: What metric is requested (EAD, Notional, MPE, Count, etc.)
+- slice.as_of: Date/time filter if specified
+- slice.scenario: Scenario type (BASELINE, STRESS, etc.) - default to BASELINE
+- Only include components that are present in the question
+- Use UPPERCASE for identifiers and metrics
+- Convert dates to YYYY-MM-DD format
+
+Return only the JSON array:"""
+
+        try:
+            response = self.client.chat.completions.create(
+                model="gpt-4o-mini",
+                messages=[{"role": "user", "content": prompt}],
+                temperature=0,
+                max_tokens=150
+            )
+            
+            import json
+            content = response.choices[0].message.content.strip()
+            # Clean up any markdown formatting
+            if content.startswith('```json'):
+                content = content.replace('```json', '').replace('```', '').strip()
+            
+            return json.loads(content)
+            
+        except Exception as e:
+            # Fallback intent array
+            return [
+                "entity: Data",
+                "metrics: ANALYSIS"
+            ]
     
     def generate_natural_response(self, question: str, sql_query: str, results: list) -> str:
         """Generate risk analyst-style response using actual data"""
@@ -289,11 +302,6 @@ Rules:
 - Be concise (1-2 sentences max)
 - NO placeholders or generic names
 - Focus on risk implications
-
-Examples:
-- "TSE_C1 and NYSE_C4 represent the highest counterparty risk concentration in 2024."
-- "Exposure concentration increased across five key counterparties: TSE_C1, TSE_C2, NASDAQ_C3, NYSE_C4, and CBOE_C5."
-- "Long-dated exposure beyond 2026 is concentrated in NASDAQ_C3 and TSE_C2 positions."
 
 Analyst Response:"""
 
