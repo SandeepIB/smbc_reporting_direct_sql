@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import ChatInterface from './components/ChatInterface';
+import LandingPage from './components/LandingPage';
 import { chatService } from './services/chatService';
 import './App.css';
 
@@ -7,6 +8,7 @@ function App() {
   const [messages, setMessages] = useState([]);
   const [sessionId, setSessionId] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [showChat, setShowChat] = useState(false);
 
   useEffect(() => {
     // Generate session ID on app start
@@ -347,16 +349,33 @@ function App() {
     }
   };
 
+  const handleOpenChat = () => {
+    setShowChat(true);
+  };
+
+  const handleCloseChat = () => {
+    setShowChat(false);
+  };
+
   return (
     <div className="App">
-      <ChatInterface 
-        messages={messages}
-        onSendMessage={sendMessage}
-        onConfirmQuestion={confirmQuestion}
-        onRefineMessage={refineMessage}
-        onDownloadReport={downloadReport}
-        isLoading={isLoading}
-      />
+      {!showChat ? (
+        <LandingPage onOpenChat={handleOpenChat} />
+      ) : (
+        <div className="chat-container">
+          <button className="close-chat-btn" onClick={handleCloseChat} title="Back to Home">
+            ← Back
+          </button>
+          <ChatInterface 
+            messages={messages}
+            onSendMessage={sendMessage}
+            onConfirmQuestion={confirmQuestion}
+            onRefineMessage={refineMessage}
+            onDownloadReport={downloadReport}
+            isLoading={isLoading}
+          />
+        </div>
+      )}
     </div>
   );
 }

@@ -1,6 +1,6 @@
 #!/bin/bash
 
-echo "🚀 Starting Full-Stack Natural Language to SQL Application"
+echo "🚀 Starting Full-Stack Prompts to Insights Application"
 echo "========================================================="
 
 # Check if .env exists

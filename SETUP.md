@@ -1,4 +1,4 @@
-# Full-Stack Natural Language to SQL Application Setup
+# Full-Stack Prompts to Insights Application Setup
 
 This guide will help you set up and run the complete application with both CLI and web interfaces.
 

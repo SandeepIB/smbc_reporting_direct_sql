@@ -380,7 +380,7 @@ const ChatInterface = ({ messages, onSendMessage, onConfirmQuestion, onRefineMes
         <div className="header-content">
           <div className="logo">
             <div className="logo-icon">🔍</div>
-            <span className="logo-text">SQL Assistant</span>
+            <span className="logo-text">Prompts to Insights</span>
           </div>
         </div>
       </div>
@@ -390,7 +390,7 @@ const ChatInterface = ({ messages, onSendMessage, onConfirmQuestion, onRefineMes
         <div className="messages">
           {messages.length === 0 && (
             <div className="welcome-message">
-              <h2>Welcome to SQL Assistant</h2>
+              <h2>Welcome to Prompts to Insights</h2>
               <p>Ask me anything about your database in natural language!</p>
             </div>
           )}

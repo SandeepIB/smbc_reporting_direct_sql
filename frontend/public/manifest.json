@@ -1,6 +1,6 @@
 {
-  "short_name": "SQL Chat",
-  "name": "Natural Language to SQL Chat",
+  "short_name": "Prompts to Insights",
+  "name": "Prompts to Insights - Natural Language to SQL Chat",
   "start_url": ".",
   "display": "standalone",
   "theme_color": "#000000",

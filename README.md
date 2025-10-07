@@ -1,12 +1,12 @@
-# Natural Language to SQL Application
+# Prompts to Insights Application
 
-A full-stack application that converts natural language questions into SQL queries and executes them against a MySQL database. Available as both CLI and web interface.
+A full-stack application that converts natural language prompts into actionable insights by generating SQL queries and executing them against a MySQL database. Available as both CLI and web interface.
 
 ## Features
 
 ### Core Features
 - **Cacheable Schema Generation**: Generate database schema once and reuse
-- **Natural Language Processing**: Convert questions to SQL using OpenAI
+- **Natural Language Processing**: Convert prompts to insights using OpenAI
 - **Safe Query Execution**: Execute queries with proper error handling
 - **Session Management**: Multi-user support with chat history
 

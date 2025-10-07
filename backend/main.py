@@ -24,7 +24,7 @@ logger = logging.getLogger(__name__)
 async def lifespan(app: FastAPI):
     # Startup
     global schema
-    logger.info("Starting Natural Language to SQL API...")
+    logger.info("Starting Prompts to Insights API...")
     
     # Test database connection
     if not db_manager.test_connection():
@@ -44,7 +44,7 @@ async def lifespan(app: FastAPI):
     # Shutdown
     logger.info("Shutting down...")
 
-app = FastAPI(title="Natural Language to SQL API", version="1.0.0", lifespan=lifespan)
+app = FastAPI(title="Prompts to Insights API", version="1.0.0", lifespan=lifespan)
 
 # CORS middleware
 app.add_middleware(

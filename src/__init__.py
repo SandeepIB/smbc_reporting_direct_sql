@@ -1,1 +1,1 @@
-# Natural Language to SQL Application
+# Prompts to Insights Application
