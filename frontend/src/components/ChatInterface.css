@@ -139,6 +139,44 @@
   cursor: not-allowed;
 }
 
+/* Expand Results Button */
+.expand-results-btn-right {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: flex-end !important;
+  background: none !important;
+  border: none !important;
+  color: #004d26 !important;
+  cursor: pointer !important;
+  padding: 8px 0 !important;
+  font-size: 14px !important;
+  font-weight: 500 !important;
+  transition: all 0.2s ease !important;
+  width: 100% !important;
+  margin-bottom: 8px !important;
+}
+
+.expand-results-btn-right:hover {
+  color: #006400 !important;
+}
+
+.expand-results-btn-right svg {
+  color: #004d26 !important;
+  margin-left: 8px !important;
+}
+
+.expand-results-btn-right:hover svg {
+  color: #006400 !important;
+}
+
+.expand-arrow {
+  transition: transform 0.2s ease;
+}
+
+.expand-arrow.expanded {
+  transform: rotate(180deg);
+}
+
 /* Message Bubbles */
 .message {
   display: flex;

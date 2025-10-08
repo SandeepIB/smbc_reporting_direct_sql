@@ -492,15 +492,7 @@ const ChatInterface = ({ messages, onSendMessage, onConfirmQuestion, onRefineMes
           {messages.map((message) => (
             <div key={message.id} className={`message ${message.sender}`}>
               <div className="message-content">
-                <div className="flex items-start justify-between">
-                  <div className="message-text flex-1">{message.text}</div>
-                  {message.sender === 'bot' && message.sqlQuery && (
-                    <InfoIcon
-                      onClick={() => toggleMessageDetails(message.id)}
-                      isExpanded={expandedMessages.has(message.id)}
-                    />
-                  )}
-                </div>
+                <div className="message-text">{message.text}</div>
                 
                 {message.sender === 'bot' && message.sqlQuery && (
                   <MessageDetails
@@ -513,11 +505,35 @@ const ChatInterface = ({ messages, onSendMessage, onConfirmQuestion, onRefineMes
                 )}
                 
                 {message.sender === 'bot' && message.success && message.sqlQuery && (
-                  <DownloadReportSection
-                    message={message}
-                    onDownloadReport={handleDownloadReport}
-                    isGenerating={isGeneratingReport}
-                  />
+                  <div>
+                    <button
+                      onClick={() => toggleMessageDetails(message.id)}
+                      className="expand-results-btn-right"
+                    >
+                      {expandedMessages.has(message.id) ? 'Collapse results' : 'Expand results'}
+                      <svg 
+                        className={`expand-arrow ${expandedMessages.has(message.id) ? 'expanded' : ''}`}
+                        width="16" 
+                        height="16" 
+                        viewBox="0 0 24 24" 
+                        fill="none"
+                      >
+                        <path 
+                          d="M6 9l6 6 6-6" 
+                          stroke="currentColor" 
+                          strokeWidth="2" 
+                          strokeLinecap="round" 
+                          strokeLinejoin="round"
+                        />
+                      </svg>
+                    </button>
+                    
+                    <DownloadReportSection
+                      message={message}
+                      onDownloadReport={handleDownloadReport}
+                      isGenerating={isGeneratingReport}
+                    />
+                  </div>
                 )}
                 
                 {message.sender === 'bot' && message.needsConfirmation && editingMessageId !== message.id && (
