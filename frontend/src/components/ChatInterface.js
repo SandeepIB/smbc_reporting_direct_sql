@@ -440,6 +440,17 @@ const ChatInterface = ({ messages, onSendMessage, onConfirmQuestion, onRefineMes
     setEditingMessageId(null);
   };
 
+  const handlePrePrompt = (prompt) => {
+    setInputValue(prompt);
+    inputRef.current?.focus();
+  };
+
+  const prePrompts = [
+    "Top 5 counterparties with highest credit exposure",
+    "Top major movers in the last 3 months", 
+    "Key credit risk concentrations by MPE"
+  ];
+
   return (
     <div className="chat-interface">
       {/* Header */}
@@ -458,7 +469,23 @@ const ChatInterface = ({ messages, onSendMessage, onConfirmQuestion, onRefineMes
           {messages.length === 0 && (
             <div className="welcome-message">
               <h2>Welcome to Counterparty Risk Assistant</h2>
-              <p>Ask me anything about your database in natural language!</p>
+              <p>Ask me anything about counterparty credit risk.</p>
+              
+              <div className="pre-prompts">
+                <h3>Quick Start Questions:</h3>
+                <div className="pre-prompt-cards">
+                  {prePrompts.map((prompt, index) => (
+                    <button
+                      key={index}
+                      className="pre-prompt-card"
+                      onClick={() => handlePrePrompt(prompt)}
+                      disabled={isLoading}
+                    >
+                      {prompt}
+                    </button>
+                  ))}
+                </div>
+              </div>
             </div>
           )}
           
