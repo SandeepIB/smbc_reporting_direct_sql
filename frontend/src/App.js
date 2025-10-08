@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import ChatInterface from './components/ChatInterface';
 import LandingPage from './components/LandingPage';
+import AdminLogin from './components/AdminLogin';
+import AdminPage from './components/AdminPage';
 import { chatService } from './services/chatService';
 import './App.css';
 
@@ -9,6 +11,10 @@ function App() {
   const [sessionId, setSessionId] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [showChat, setShowChat] = useState(false);
+  const [showAdmin, setShowAdmin] = useState(false);
+  const [isAdminLoggedIn, setIsAdminLoggedIn] = useState(() => {
+    return localStorage.getItem('adminLoggedIn') === 'true';
+  });
 
   useEffect(() => {
     // Generate session ID on app start
@@ -18,6 +24,9 @@ function App() {
 
   const sendMessage = async (message) => {
     if (!message.trim()) return;
+
+    // Clear any pending confirmations by removing messages that need confirmation
+    setMessages(prev => prev.filter(msg => !msg.needsConfirmation));
 
     // Add user message
     const userMessage = {
@@ -316,6 +325,76 @@ function App() {
     }
   };
 
+  const handleFeedback = async (feedbackData) => {
+    try {
+      // Submit feedback with proper serialization
+      const feedbackPayload = {
+        messageId: String(feedbackData.messageId),
+        type: feedbackData.type,
+        feedback: feedbackData.feedback || '',
+        originalQuery: feedbackData.originalQuery || '',
+        sqlQuery: feedbackData.sqlQuery || '',
+        response: feedbackData.response || '',
+        sessionId: sessionId
+      };
+      
+      await chatService.submitFeedback(feedbackPayload);
+      
+      // If negative feedback, process it and get improved response
+      if (feedbackData.type === 'down' && feedbackData.feedback && feedbackData.feedback.trim()) {
+        const response = await chatService.processWithFeedback(
+          feedbackData.originalQuery,
+          feedbackData.feedback,
+          sessionId
+        );
+        
+        // Add system message about feedback
+        const systemMessage = {
+          id: Date.now(),
+          text: "✅ Thank you for your feedback! I've logged it for training and review. Here's an improved response:",
+          sender: 'bot',
+          timestamp: new Date().toISOString(),
+          success: true
+        };
+        setMessages(prev => [...prev, systemMessage]);
+        
+        // Add improved response
+        const improvedMessage = {
+          id: Date.now() + 1,
+          text: response.response,
+          sender: 'bot',
+          timestamp: response.timestamp,
+          sqlQuery: response.sql_query,
+          rawData: response.raw_data,
+          rowCount: response.row_count,
+          success: response.success,
+          originalQuestion: feedbackData.originalQuery
+        };
+        setMessages(prev => [...prev, improvedMessage]);
+      } else {
+        // Just show thank you message for positive feedback
+        const thankYouMessage = {
+          id: Date.now(),
+          text: "👍 Thank you for the positive feedback! This helps us improve.",
+          sender: 'bot',
+          timestamp: new Date().toISOString(),
+          success: true
+        };
+        setMessages(prev => [...prev, thankYouMessage]);
+      }
+    } catch (error) {
+      console.error('Feedback error:', error);
+      const errorMessage = {
+        id: Date.now(),
+        text: `Sorry, I couldn't process your feedback: ${error.message || 'Unknown error'}`,
+        sender: 'bot',
+        timestamp: new Date().toISOString(),
+        success: false
+      };
+      setMessages(prev => [...prev, errorMessage]);
+    }
+  };
+
   const refineMessage = async (originalQuestion, feedback) => {
     try {
       const response = await chatService.refineMessage(originalQuestion, feedback, sessionId);
@@ -357,10 +436,44 @@ function App() {
     setShowChat(false);
   };
 
+  const handleAdminLogin = (success) => {
+    if (success) {
+      setIsAdminLoggedIn(true);
+      setShowAdmin(true);
+      localStorage.setItem('adminLoggedIn', 'true');
+    }
+  };
+
+  const handleAdminLogout = () => {
+    setIsAdminLoggedIn(false);
+    setShowAdmin(false);
+    localStorage.removeItem('adminLoggedIn');
+  };
+
+  const handleBackToHome = () => {
+    setShowChat(false);
+    setShowAdmin(false);
+  };
+
+  const handleOpenAdmin = () => {
+    if (isAdminLoggedIn) {
+      setShowAdmin(true);
+    } else {
+      setShowAdmin(true);
+      setIsAdminLoggedIn(false);
+    }
+  };
+
   return (
     <div className="App">
-      {!showChat ? (
-        <LandingPage onOpenChat={handleOpenChat} />
+      {showAdmin ? (
+        isAdminLoggedIn ? (
+          <AdminPage onLogout={handleAdminLogout} onBackToHome={handleBackToHome} />
+        ) : (
+          <AdminLogin onLogin={handleAdminLogin} />
+        )
+      ) : !showChat ? (
+        <LandingPage onOpenChat={handleOpenChat} onOpenAdmin={handleOpenAdmin} />
       ) : (
         <div className="chat-container">
           <button className="close-chat-btn" onClick={handleCloseChat} title="Back to Home">
@@ -372,6 +485,7 @@ function App() {
             onConfirmQuestion={confirmQuestion}
             onRefineMessage={refineMessage}
             onDownloadReport={downloadReport}
+            onFeedback={handleFeedback}
             isLoading={isLoading}
           />
         </div>

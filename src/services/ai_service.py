@@ -7,7 +7,7 @@ class AIService:
         self.config.validate()
         self.client = OpenAI(api_key=self.config.OPENAI_API_KEY)
     
-    def question_to_sql(self, question: str, schema: str) -> str:
+    def question_to_sql(self, question: str, schema: str, training_context: list = None) -> str:
         # Handle system queries only
         question_lower = question.lower()
         
@@ -28,12 +28,27 @@ class AIService:
         elif "current" in question_lower and "user" in question_lower:
             return "SELECT USER(), CURRENT_USER();"
         
+        # Get training context if not provided
+        if training_context is None:
+            from backend.feedback_service import FeedbackService
+            feedback_service = FeedbackService()
+            training_context = feedback_service.get_semantic_context(question)
+        
+        # Build training context string
+        context_str = ""
+        if training_context:
+            context_str = "\n\nTRAINING CONTEXT (use this to improve query generation):\n"
+            for ctx in training_context[:3]:  # Use top 3 relevant contexts
+                context_str += f"- Q: {ctx['question']}\n  A: {ctx['answer']}\n"
+                if ctx.get('context'):
+                    context_str += f"  Context: {ctx['context']}\n"
+        
         # Regular data queries
         prompt = f"""
 Generate MySQL query using the exact schema provided.
 
 Schema: {schema}
-Question: {question}
+Question: {question}{context_str}
 
 CRITICAL TABLE AND COLUMN MAPPING:
 

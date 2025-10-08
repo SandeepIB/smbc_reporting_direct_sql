@@ -47,7 +47,20 @@ echo "✅ Using Frontend Port: $FRONTEND_PORT"
 # Start backend in background with custom port
 echo "🔧 Starting backend API server on port $BACKEND_PORT..."
 cd backend
-uvicorn main:app --host 0.0.0.0 --port $BACKEND_PORT --reload &
+
+# Check if virtual environment exists, if not create it
+if [ ! -d "venv" ]; then
+    echo "📦 Creating virtual environment..."
+    python3 -m venv venv
+fi
+
+# Activate virtual environment and install dependencies
+echo "📦 Installing dependencies..."
+source venv/bin/activate
+pip install -r requirements.txt > /dev/null 2>&1
+
+# Start the backend server
+python -m uvicorn main:app --host 0.0.0.0 --port $BACKEND_PORT --reload &
 BACKEND_PID=$!
 cd ..
 

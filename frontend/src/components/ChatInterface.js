@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import FeedbackSection from './FeedbackSection';
 import './ChatInterface.css';
 
 // Info icon component
@@ -24,8 +25,57 @@ const InfoIcon = ({ onClick, isExpanded }) => (
   </button>
 );
 
+// Edit Question component
+const EditQuestionSection = ({ originalQuestion, onEditSubmit, onCancel }) => {
+  const [editedQuestion, setEditedQuestion] = useState(originalQuestion);
+  
+  const handleSubmit = () => {
+    if (editedQuestion.trim() && editedQuestion !== originalQuestion) {
+      onEditSubmit(editedQuestion);
+    }
+  };
+  
+  return (
+    <div className="mt-4 p-4 bg-yellow-50 rounded-lg border border-yellow-200">
+      <div className="flex items-center gap-2 mb-3">
+        <svg className="w-5 h-5 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+        </svg>
+        <h3 className="text-base font-semibold text-yellow-800">Edit Your Question</h3>
+      </div>
+      
+      <textarea
+        value={editedQuestion}
+        onChange={(e) => setEditedQuestion(e.target.value)}
+        className="w-full p-3 border border-yellow-300 rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-yellow-500"
+        rows="3"
+        placeholder="Edit your question here..."
+      />
+      
+      <div className="flex gap-3 mt-3">
+        <button
+          onClick={handleSubmit}
+          disabled={!editedQuestion.trim() || editedQuestion === originalQuestion}
+          className="inline-flex items-center gap-2 px-4 py-2 bg-green-600 text-white text-sm font-medium rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+        >
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+          </svg>
+          Submit Edited Question
+        </button>
+        <button
+          onClick={onCancel}
+          className="inline-flex items-center gap-2 px-4 py-2 bg-gray-500 text-white text-sm font-medium rounded-lg hover:bg-gray-600 transition-colors"
+        >
+          Cancel
+        </button>
+      </div>
+    </div>
+  );
+};
+
 // Confirmation component
-const ConfirmationSection = ({ message, onConfirm, isConfirming }) => {
+const ConfirmationSection = ({ message, onConfirm, onEditQuestion, isConfirming }) => {
   const interpretation = message.interpretedQuestion;
   
   return (
@@ -117,7 +167,7 @@ ${interpretation.intent_array.map(item => `  "${item}"`).join(',\n')}
           {isConfirming ? 'Processing...' : 'Yes, correct'}
         </button>
         <button
-          onClick={() => onConfirm(false)}
+          onClick={onEditQuestion}
           disabled={isConfirming}
           className="inline-flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-gray-600 to-gray-700 text-white text-sm font-medium rounded-lg hover:from-gray-700 hover:to-gray-800 disabled:opacity-50 transition-all duration-200 shadow-md hover:shadow-lg"
         >
@@ -304,12 +354,14 @@ const MessageDetails = ({ sqlQuery, rawData, rowCount, dataSources, isExpanded }
   );
 };
 
-const ChatInterface = ({ messages, onSendMessage, onConfirmQuestion, onRefineMessage, onDownloadReport, isLoading }) => {
+const ChatInterface = ({ messages, onSendMessage, onConfirmQuestion, onRefineMessage, onDownloadReport, onFeedback, isLoading }) => {
   const [inputValue, setInputValue] = useState('');
   const [expandedMessages, setExpandedMessages] = useState(new Set());
   const [isRefining, setIsRefining] = useState(false);
   const [isConfirming, setIsConfirming] = useState(false);
   const [isGeneratingReport, setIsGeneratingReport] = useState(false);
+  const [editingMessageId, setEditingMessageId] = useState(null);
+
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
 
@@ -373,6 +425,21 @@ const ChatInterface = ({ messages, onSendMessage, onConfirmQuestion, onRefineMes
     }
   };
 
+  const handleEditQuestion = (messageId) => {
+    setEditingMessageId(messageId);
+  };
+
+  const handleEditSubmit = (editedQuestion) => {
+    // Clear the editing state first
+    setEditingMessageId(null);
+    // Send the edited question directly
+    onSendMessage(editedQuestion);
+  };
+
+  const handleEditCancel = () => {
+    setEditingMessageId(null);
+  };
+
   return (
     <div className="chat-interface">
       {/* Header */}
@@ -426,11 +493,20 @@ const ChatInterface = ({ messages, onSendMessage, onConfirmQuestion, onRefineMes
                   />
                 )}
                 
-                {message.sender === 'bot' && message.needsConfirmation && (
+                {message.sender === 'bot' && message.needsConfirmation && editingMessageId !== message.id && (
                   <ConfirmationSection
                     message={message}
                     onConfirm={handleConfirmQuestion}
+                    onEditQuestion={() => handleEditQuestion(message.id)}
                     isConfirming={isConfirming}
+                  />
+                )}
+                
+                {editingMessageId === message.id && (
+                  <EditQuestionSection
+                    originalQuestion={message.originalQuestion}
+                    onEditSubmit={handleEditSubmit}
+                    onCancel={handleEditCancel}
                   />
                 )}
                 
@@ -441,6 +517,11 @@ const ChatInterface = ({ messages, onSendMessage, onConfirmQuestion, onRefineMes
                     isRefining={isRefining}
                   />
                 )}
+                
+                <FeedbackSection 
+                  message={message} 
+                  onFeedback={onFeedback}
+                />
                 
                 <div className="message-time">
                   {new Date(message.timestamp).toLocaleTimeString()}
@@ -495,6 +576,7 @@ const ChatInterface = ({ messages, onSendMessage, onConfirmQuestion, onRefineMes
           </button>
         </form>
       </div>
+
     </div>
   );
 };
