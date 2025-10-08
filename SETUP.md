@@ -54,6 +54,10 @@ MYSQL_DATABASE=your_database
 ROW_LIMIT=500
 ALLOWED_SCHEMAS=
 ALLOWED_TABLES=
+
+# Admin Credentials (for demo)
+ADMIN_USERNAME=admin
+ADMIN_PASSWORD=admin123
 ```
 
 ## Running the Application
@@ -95,6 +99,30 @@ npm start
 
 The web interface will be available at: http://localhost:3000
 The API will be available at: http://localhost:8000
+The admin interface will be available at: http://localhost:3000 (click gear icon)
+
+## Admin Interface
+
+The application includes an admin dashboard for managing user feedback and training data:
+
+### Accessing Admin Interface
+1. Start the full-stack application
+2. Open http://localhost:3000
+3. Click the **⚙️** (gear) icon on the home page
+4. Login with admin credentials:
+   - **Username**: admin
+   - **Password**: admin123
+
+### Admin Features
+- **Feedback Management**: Review and approve/reject user feedback
+- **Training Data**: View and manage approved training examples
+- **Analytics**: Monitor user interactions and feedback trends
+
+### Default Admin Credentials
+- Username: `admin`
+- Password: `admin123`
+
+*Note: These are demo credentials. In production, implement proper authentication.*
 
 ### Option 3: Both CLI and Web
 
@@ -108,6 +136,12 @@ You can run both interfaces simultaneously:
 - `POST /chat` - Send message to chatbot
 - `GET /sessions/{session_id}/history` - Get chat history
 - `POST /schema/refresh` - Refresh database schema
+- `POST /feedback` - Submit user feedback
+- `POST /admin/login` - Admin authentication
+- `GET /admin/feedbacks` - Get pending feedback
+- `POST /admin/feedbacks/{id}/approve` - Approve feedback
+- `GET /admin/training-data` - Get training data
+- `GET /api/sample-data` - Get sample data for landing page
 
 ## Features
 
@@ -118,12 +152,21 @@ You can run both interfaces simultaneously:
 - Connection testing
 - Executive report generation
 
+### Pre-prompt Questions
+The web interface includes quick-start cards for common queries:
+- "Top 5 counterparties with highest credit exposure"
+- "Top major movers in the last 3 months"
+- "Key credit risk concentrations by MPE"
+
 ### Web Features
-- Modern chat interface with clean answer display
-- Expandable help/info icon showing SQL query and raw data
+- Modern chat interface with SMBC green branding
+- Pre-prompt cards for common counterparty risk questions
+- Expandable results section showing SQL query and raw data
+- Feedback system with thumbs up/down voting
+- Executive PDF report generation
+- Admin dashboard for feedback management
 - Session-based conversations
-- Real-time responses
-- Tailwind CSS styling matching existing theme
+- Real-time responses with typing indicators
 - Mobile-responsive design
 
 ## Troubleshooting
@@ -173,6 +216,16 @@ curl http://localhost:8000/health
 4. **Schema Cache Issues**
    - Delete `schema_cache.json` and regenerate
    - Run `python cli_app.py generate-schema`
+
+5. **Admin Login Issues**
+   - Verify admin credentials in environment variables
+   - Check if admin endpoints are accessible
+   - Clear browser cache and cookies
+
+6. **Feedback System Issues**
+   - Ensure database tables for feedback exist
+   - Check feedback API endpoints are working
+   - Verify admin interface can access feedback data
 
 ## Development
 

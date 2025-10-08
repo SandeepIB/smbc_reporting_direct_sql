@@ -9,11 +9,15 @@ A full-stack application that converts natural language prompts into actionable 
 - **Natural Language Processing**: Convert prompts to insights using OpenAI
 - **Safe Query Execution**: Execute queries with proper error handling
 - **Session Management**: Multi-user support with chat history
+- **Pre-prompt Cards**: Quick-start questions for common counterparty risk queries
+- **Feedback System**: Thumbs up/down voting with admin review interface
+- **Executive Reports**: PDF report generation with query results and insights
 
 ### Interface Options
-- **Web Interface**: Modern React-based chat interface
+- **Web Interface**: Modern React-based chat interface with SMBC branding
 - **CLI Interface**: Interactive command-line tool
 - **REST API**: FastAPI backend for integration
+- **Admin Dashboard**: Feedback management and training data curation
 
 ## Setup
 
@@ -119,11 +123,15 @@ Web interface will be available at http://localhost:3000
 ## Available Interfaces
 
 ### Web Interface Features
-- Modern chat-style interface
-- Real-time responses
+- Modern chat-style interface with SMBC green theme
+- Real-time responses with typing indicators
 - Session-based conversations
-- SQL query display
+- Expandable SQL query and raw data display
+- Pre-prompt cards for quick counterparty risk questions
+- Feedback system with thumbs up/down voting
+- Executive PDF report generation
 - Mobile-responsive design
+- Admin interface for feedback management
 
 ### CLI Commands
 - `quit` / `exit` / `q` - Exit interactive mode
@@ -137,6 +145,12 @@ Web interface will be available at http://localhost:3000
 - `GET /health` - Health check
 - `GET /sessions/{id}/history` - Get chat history
 - `POST /schema/refresh` - Refresh schema cache
+- `POST /feedback` - Submit user feedback
+- `POST /admin/login` - Admin authentication
+- `GET /admin/feedbacks` - Get pending feedback
+- `POST /admin/feedbacks/{id}/approve` - Approve feedback
+- `GET /admin/training-data` - Get training data
+- `GET /api/sample-data` - Get sample data for landing page
 
 ## Installation
 
