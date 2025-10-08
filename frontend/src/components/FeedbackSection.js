@@ -40,7 +40,9 @@ const FeedbackSection = ({ message, onFeedback }) => {
     }
   };
 
-  if (message.sender !== 'bot' || !message.success || message.needsConfirmation) return null;
+  if (message.sender !== 'bot' || !message.success || message.needsConfirmation || 
+      message.text.includes('Thank you for the positive feedback') || 
+      message.text.includes('Thank you for your feedback! I\'ve logged it for training')) return null;
 
   return (
     <div className="feedback-section">

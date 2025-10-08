@@ -351,7 +351,7 @@ function App() {
         // Add system message about feedback
         const systemMessage = {
           id: Date.now(),
-          text: "✅ Thank you for your feedback! I've logged it for training and review. Here's an improved response:",
+          text: "Thank you for your feedback! I've logged it for training and review. Here's an improved response:",
           sender: 'bot',
           timestamp: new Date().toISOString(),
           success: true
@@ -375,7 +375,7 @@ function App() {
         // Just show thank you message for positive feedback
         const thankYouMessage = {
           id: Date.now(),
-          text: "👍 Thank you for the positive feedback! This helps us improve.",
+          text: "Thank you for the positive feedback! This helps us improve.",
           sender: 'bot',
           timestamp: new Date().toISOString(),
           success: true
