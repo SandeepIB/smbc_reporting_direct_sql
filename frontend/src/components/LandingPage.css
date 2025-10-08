@@ -12,7 +12,7 @@
   --color-brand-primary: #087443;     /* Primary green: buttons, active tabs */
   --color-brand-primary-hover: #0a4a39;/* Hover / darker primary */
   --color-brand-accent: #005633;      /* Nav hover / active background */
-  --color-highlight: #d9e60c;        /* Highlight links */
+  --color-highlight: #87d4a0;        /* Highlight links - light SMBC green */
 
   /* Backgrounds */
   --color-bg-body: #f5f5f5;
@@ -54,7 +54,7 @@ body {
 
 /* Header Navigation */
 .header {
-  background-color: var(--color-header-bg);
+  background-color: rgba(0, 75, 53, .7);
   color: var(--color-header-text);
   padding: 0;
   display: flex;

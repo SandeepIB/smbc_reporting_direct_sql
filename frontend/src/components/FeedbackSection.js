@@ -46,14 +46,14 @@ const FeedbackSection = ({ message, onFeedback }) => {
     <div className="feedback-section">
       <div className="feedback-buttons">
         <button 
-          className="feedback-btn thumbs-up" 
+          className={`feedback-btn thumbs-up ${feedbackType === 'up' ? 'selected' : ''}`}
           onClick={() => handleThumbsClick('up')}
           title="Good response"
         >
           👍
         </button>
         <button 
-          className="feedback-btn thumbs-down" 
+          className={`feedback-btn thumbs-down ${feedbackType === 'down' ? 'selected' : ''}`}
           onClick={() => handleThumbsClick('down')}
           title="Needs improvement"
         >

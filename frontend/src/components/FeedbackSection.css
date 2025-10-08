@@ -35,6 +35,18 @@
   border-color: #dc2626;
 }
 
+.thumbs-up.selected {
+  background: #dcfce7;
+  border-color: #16a34a;
+  color: #16a34a;
+}
+
+.thumbs-down.selected {
+  background: #fef2f2;
+  border-color: #dc2626;
+  color: #dc2626;
+}
+
 .feedback-form {
   background: #f8fafc;
   border: 1px solid #e2e8f0;
