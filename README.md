@@ -1,4 +1,4 @@
-# Prompts to Insights Application
+# Counterparty Risk Assistant Application
 
 A full-stack application that converts natural language prompts into actionable insights by generating SQL queries and executing them against a MySQL database. Available as both CLI and web interface.
 

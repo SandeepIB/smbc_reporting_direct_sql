@@ -12,7 +12,7 @@ class CLIChatbot:
         
     def initialize(self):
         """Initialize the CLI application"""
-        Console.header("Prompts to Insights Application")
+        Console.header("Counterparty Risk Assistant Application")
         Console.processing("Initializing application...")
         
         try:

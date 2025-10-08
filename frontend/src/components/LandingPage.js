@@ -93,7 +93,7 @@ const LandingPage = ({ onOpenChat, onOpenAdmin }) => {
 
       <main id="main-content" className="container main-content" role="main">
         <div className="report-title-bar">
-          <h1 className="report-title">Prompts to Insights</h1>
+          <h1 className="report-title">Counterparty Risk Assistant</h1>
           <span className="env-tag">ENV: PROD</span>
         </div>
         

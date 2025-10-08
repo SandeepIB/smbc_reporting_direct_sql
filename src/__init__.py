@@ -1,1 +1,1 @@
-# Prompts to Insights Application
+# Counterparty Risk Assistant Application
