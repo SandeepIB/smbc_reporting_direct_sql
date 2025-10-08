@@ -507,7 +507,7 @@
   border-radius: 1rem;
   width: 90%;
   max-width: 600px;
-  max-height: 80vh;
+  max-height: 90vh;
   overflow: hidden;
   box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
   border: 1px solid var(--color-border-light);
@@ -590,21 +590,26 @@
 }
 
 .btn-cancel {
-  background: #6b7280;
+   background: #dc3545;
   color: white;
+  border-color: #dc3545;
+
 }
 
 .btn-cancel:hover {
-  background: #4b5563;
+  background: #c82333 !important;
+  border-color: #bd2130 !important;
 }
 
 .btn-save {
-  background: #3b82f6;
+ background: var(--color-brand-primary);
   color: white;
 }
 
 .btn-save:hover {
-  background: #2563eb;
+  background-color: var(--color-brand-primary-hover) !important;
+  color: var(--color-header-text) !important;
+  border-color: var(--color-brand-primary-hover) !important;
 }
 
 .btn-save:disabled {
