@@ -27,6 +27,7 @@ const LandingPage = ({ onOpenChat, onOpenAdmin }) => {
     const fetchSampleData = async () => {
       try {
         const API_BASE_URL = process.env.REACT_APP_BACKEND_URL || `http://${window.location.hostname}:8000`;
+        console.log("API_BASE_URL:", API_BASE_URL);
         const response = await fetch(`${API_BASE_URL}/api/sample-data`);
         const result = await response.json();
         if (result.success && result.data) {
