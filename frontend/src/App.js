@@ -3,6 +3,7 @@ import ChatInterface from './components/ChatInterface';
 import LandingPage from './components/LandingPage';
 import AdminLogin from './components/AdminLogin';
 import AdminPage from './components/AdminPage';
+import CCRDeckAssistantPage from './components/CCRDeckAssistantPage';
 import { chatService } from './services/chatService';
 import './App.css';
 
@@ -12,6 +13,7 @@ function App() {
   const [isLoading, setIsLoading] = useState(false);
   const [showChat, setShowChat] = useState(false);
   const [showAdmin, setShowAdmin] = useState(false);
+  const [showCCRPage, setShowCCRPage] = useState(false);
   const [isAdminLoggedIn, setIsAdminLoggedIn] = useState(() => {
     return localStorage.getItem('adminLoggedIn') === 'true';
   });
@@ -20,6 +22,12 @@ function App() {
     // Generate session ID on app start
     const newSessionId = Date.now().toString();
     setSessionId(newSessionId);
+    
+    // Check if this is the CCR page based on URL parameter
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('page') === 'ccr') {
+      setShowCCRPage(true);
+    }
   }, []);
 
   const sendMessage = async (message) => {
@@ -464,16 +472,23 @@ function App() {
     }
   };
 
+  const handleOpenCCR = () => {
+    const ccrUrl = `${window.location.origin}${window.location.pathname}?page=ccr`;
+    window.open(ccrUrl, '_blank', 'width=1200,height=800,scrollbars=yes,resizable=yes');
+  };
+
   return (
     <div className="App">
-      {showAdmin ? (
+      {showCCRPage ? (
+        <CCRDeckAssistantPage />
+      ) : showAdmin ? (
         isAdminLoggedIn ? (
           <AdminPage onLogout={handleAdminLogout} onBackToHome={handleBackToHome} />
         ) : (
           <AdminLogin onLogin={handleAdminLogin} />
         )
       ) : !showChat ? (
-        <LandingPage onOpenChat={handleOpenChat} onOpenAdmin={handleOpenAdmin} />
+        <LandingPage onOpenChat={handleOpenChat} onOpenAdmin={handleOpenAdmin} onOpenCCR={handleOpenCCR} />
       ) : (
         <div className="chat-container">
           <button className="close-chat-btn" onClick={handleCloseChat} title="Back to Home">
