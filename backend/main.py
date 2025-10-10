@@ -471,18 +471,22 @@ async def submit_feedback(request: FeedbackRequest):
 @app.post("/process-feedback")
 async def process_feedback(request: ProcessFeedbackRequest):
     try:
+        # Get training context for semantic enhancement
         context = feedback_service.get_semantic_context(request.original_query)
-        enhanced_query = f"{request.original_query}\n\nUser feedback: {request.feedback}"
-        if context:
-            enhanced_query += f"\n\nRelevant context: {context[0]['answer']}"
         
-        sql_query = ai_service.question_to_sql(enhanced_query, schema)
+        # Use the original successful query approach instead of generating new SQL
+        # This prevents column existence errors
+        sql_query = ai_service.question_to_sql(request.original_query, schema, context)
         result = db_manager.execute_query(sql_query)
         
         if result["success"]:
+            # Generate response with feedback context but use original query structure
+            response_context = f"Based on your feedback: {request.feedback}" if request.feedback else ""
             natural_response = ai_service.generate_natural_response(
-                enhanced_query, sql_query, result["data"]
+                request.original_query, sql_query, result["data"]
             )
+            if response_context:
+                natural_response = f"{response_context}\n\n{natural_response}"
             
             raw_data_serializable = []
             if result["data"]:
