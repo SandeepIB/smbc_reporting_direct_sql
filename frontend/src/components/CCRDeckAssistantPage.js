@@ -73,7 +73,7 @@ const CCRDeckAssistantPage = () => {
 
   return (
     <div className="ccr-page">
-      <CommonHeader title="CCR Deck Assistant" />
+      <CommonHeader title="CCR Deck Assistant" showSearchIcon={false} />
       <main className="ccr-page-content">
         <div className="ccr-container">
           <div className="upload-section">

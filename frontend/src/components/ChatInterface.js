@@ -452,7 +452,7 @@ const ChatInterface = ({ messages, onSendMessage, onConfirmQuestion, onRefineMes
   ];
 
   return (
-    <div className="chat-interface">
+    <div className={`chat-interface ${hideHeader ? '' : 'full-height'}`}>
       {/* Header */}
       {!hideHeader && (
         <div className="chat-header">
