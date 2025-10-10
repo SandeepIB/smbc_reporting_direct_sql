@@ -15,6 +15,13 @@ A comprehensive full-stack application that converts natural language prompts in
 - **CCR Deck Assistant**: AI-powered chart analysis with PowerPoint report generation
 - **Professional Landing Page**: Modern interface with feature showcase and navigation
 
+### Enhanced CCR Features
+- **Automatic Image Cropping**: Split charts into 2x3 grid for detailed analysis
+- **PowerPoint-Style Layout**: Preview results with thumbnails and professional formatting
+- **Cancel Analysis**: Stop analysis mid-process with AbortController
+- **Unified Backend**: Single-port architecture for simplified deployment
+- **Mobile-Responsive Design**: Optimized for desktop and mobile devices
+
 ### Interface Options
 - **Web Interface**: Modern React-based interface with SMBC branding and routing
 - **CLI Interface**: Interactive command-line tool
@@ -203,6 +210,15 @@ No code changes required - only update `frontend/.env` file.
 - **Admin Dashboard**: Feedback management and training data curation
 - **React Router Navigation**: Clean URL structure with proper routing
 
+### CCR Analysis Features
+- **Smart Image Cropping**: Automatically split charts into 6 segments (2x3 grid)
+- **Individual Block Analysis**: Each cropped section analyzed separately by GPT-4o
+- **PowerPoint Preview**: Results displayed in presentation-style layout
+- **Chart Thumbnails**: Visual preview of analyzed image segments
+- **Professional Formatting**: Clean, structured analysis with trend and recommendation sections
+- **Cancel Functionality**: Stop analysis process at any time
+- **Error Handling**: Comprehensive error messages and retry mechanisms
+
 ### CLI Commands
 - `quit` / `exit` / `q` - Exit interactive mode
 - `refresh` - Reload database schema
@@ -212,7 +228,8 @@ No code changes required - only update `frontend/.env` file.
 
 ### API Endpoints
 
-#### Main Backend (Port 8000)
+#### Unified Backend (Port 8000)
+**Main API Endpoints:**
 - `POST /chat` - Send message to chatbot
 - `GET /health` - Health check
 - `GET /sessions/{id}/history` - Get chat history
@@ -224,10 +241,10 @@ No code changes required - only update `frontend/.env` file.
 - `GET /admin/training-data` - Get training data
 - `GET /api/sample-data` - Get sample data for landing page
 
-#### CCR Backend (Port 8001)
+**CCR Analysis Endpoints:**
 - `POST /upload-images` - Upload chart images for analysis
-- `POST /configure-cropping` - Configure image cropping settings
-- `POST /analyze` - Analyze uploaded images with AI
+- `POST /configure-cropping` - Configure image cropping settings (2x3 grid)
+- `POST /analyze` - Analyze uploaded images with AI (supports cropping)
 - `GET /download-report` - Download PowerPoint report with analysis
 
 ## Installation
