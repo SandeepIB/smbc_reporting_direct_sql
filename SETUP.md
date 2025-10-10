@@ -19,11 +19,11 @@ This guide will help you set up and run the complete application with CLI, web c
 # Navigate to project root
 cd /var/www/html/SMBC/smbc_reporting_direct_sql
 
-# Install Python dependencies for main backend
+# Install Python dependencies (includes CCR functionality)
 pip install -r backend/requirements.txt
 
-# Install additional dependencies for CCR functionality
-pip install pillow python-pptx
+# If you get import errors, install missing dependencies:
+pip install python-multipart pillow python-pptx
 
 # Configure environment variables
 cp .env.example .env
@@ -39,8 +39,14 @@ cd frontend
 # Install Node.js dependencies with legacy peer deps for compatibility
 npm install --legacy-peer-deps
 
-# Fix any security vulnerabilities
+# Fix any security vulnerabilities (optional)
 npm audit fix
+
+# Build the application for production
+npm run build
+
+# Verify build was successful
+ls -la build/
 ```
 
 ### 3. Environment Configuration
@@ -147,7 +153,16 @@ python -m uvicorn backend.main:app --host 0.0.0.0 --port 8001 --reload
 ```bash
 # From project root
 cd frontend
+
+# Option 1: Development server (auto-reload, debugging)
 npm start
+
+# Option 2: Production build and serve (faster, stable)
+npm run build
+npx serve -s build -l 3000
+
+# Option 3: If port 3000 is busy, use different port
+npx serve -s build -l 3001
 ```
 
 The application will be available at:
@@ -273,6 +288,30 @@ REACT_APP_CCR_API_URL=https://ccr-api.smbc.com
 
 ## Troubleshooting
 
+### Frontend Issues
+```bash
+# If localhost:3000 shows "connection refused":
+
+# 1. Check if frontend is running
+lsof -i :3000
+
+# 2. Kill any existing processes on port 3000
+kill -9 $(lsof -t -i:3000) 2>/dev/null || true
+
+# 3. Clear npm cache and reinstall
+cd frontend
+npm cache clean --force
+rm -rf node_modules package-lock.json
+npm install --legacy-peer-deps
+
+# 4. Build and serve the application
+npm run build
+npx serve -s build -l 3000
+
+# 5. Alternative: Use development server
+npm start
+```
+
 ### Backend Issues
 ```bash
 # Test database connection
@@ -328,6 +367,20 @@ curl http://localhost:8000/health
    - Ensure database tables for feedback exist
    - Check feedback API endpoints are working
    - Verify admin interface can access feedback data
+
+7. **Frontend Connection Refused (ERR_CONNECTION_REFUSED)**
+   - Frontend not running: `cd frontend && npm start`
+   - Port 3000 occupied: `kill -9 $(lsof -t -i:3000)` then restart
+   - Build issues: `npm run build` then `npx serve -s build -l 3000`
+   - Dependencies missing: `npm install --legacy-peer-deps`
+   - Cache issues: `npm cache clean --force && rm -rf node_modules && npm install`
+
+8. **Backend Import/Dependency Errors**
+   - Missing python-multipart: `pip install python-multipart`
+   - Missing PIL/Pillow: `pip install pillow`
+   - Missing python-pptx: `pip install python-pptx`
+   - Install all: `pip install -r backend/requirements.txt`
+   - Virtual environment issues: `cd backend && python -m venv venv && source venv/bin/activate`
 
 ## Development
 

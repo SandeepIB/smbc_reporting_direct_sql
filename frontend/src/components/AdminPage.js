@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import AdminInterface from './AdminInterface';
 import './AdminPage.css';
 

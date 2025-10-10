@@ -41,7 +41,7 @@ kill_port 3000
 BACKEND_PORT=$(find_available_port 8000)
 FRONTEND_PORT=$(find_available_port 3000)
 
-echo "✅ Using Backend Port: $BACKEND_PORT"
+echo "✅ Using Backend Port: $BACKEND_PORT (includes CCR)"
 echo "✅ Using Frontend Port: $FRONTEND_PORT"
 
 # Start backend in background with custom port
@@ -57,7 +57,11 @@ fi
 # Activate virtual environment and install dependencies
 echo "📦 Installing dependencies..."
 source venv/bin/activate
-pip install -r requirements.txt > /dev/null 2>&1
+pip install -r requirements.txt
+
+# Install additional dependencies for CCR functionality
+echo "📦 Installing CCR dependencies..."
+pip install python-multipart pillow python-pptx > /dev/null 2>&1
 
 # Start the backend server
 python -m uvicorn main:app --host 0.0.0.0 --port $BACKEND_PORT --reload &
@@ -76,19 +80,46 @@ else
     exit 1
 fi
 
-# Start frontend with custom port and backend URL
+# CCR functionality is now integrated into main backend
+echo "✅ CCR functionality integrated into main backend"
+
+# Start frontend with custom port and backend URLs
 echo "🎨 Starting frontend React app on port $FRONTEND_PORT..."
 cd frontend
-HOST_IP=$(hostname -I | awk '{print $1}')
-PORT=$FRONTEND_PORT REACT_APP_BACKEND_URL=http://$HOST_IP:$BACKEND_PORT npm start &
-FRONTEND_PID=$!
+
+# Check if build exists, if not build it
+if [ ! -d "build" ]; then
+    echo "🔨 Building React application..."
+    npm run build
+fi
+
+# Set environment variables for API URLs
+export REACT_APP_MAIN_API_URL=http://localhost:$BACKEND_PORT
+export REACT_APP_CCR_API_URL=http://localhost:$BACKEND_PORT
+
+# Start frontend (try production build first, fallback to dev)
+if [ -d "build" ]; then
+    echo "🚀 Starting production frontend server..."
+    npx serve -s build -l $FRONTEND_PORT &
+    FRONTEND_PID=$!
+else
+    echo "🚀 Starting development frontend server..."
+    PORT=$FRONTEND_PORT npm start &
+    FRONTEND_PID=$!
+fi
 cd ..
 
 echo ""
 echo "🎉 Application started successfully!"
 echo "📱 Web Interface: http://localhost:$FRONTEND_PORT"
-echo "🔌 API Endpoint: http://localhost:$BACKEND_PORT"
+echo "🔌 Unified API: http://localhost:$BACKEND_PORT (includes CCR)"
 echo "📖 API Docs: http://localhost:$BACKEND_PORT/docs"
+echo ""
+echo "🌍 Available Pages:"
+echo "   • Landing: http://localhost:$FRONTEND_PORT"
+echo "   • Chat: http://localhost:$FRONTEND_PORT/chat"
+echo "   • CCR Assistant: http://localhost:$FRONTEND_PORT/ccr"
+echo "   • Admin: http://localhost:$FRONTEND_PORT/admin"
 echo ""
 echo "💡 You can also use the CLI:"
 echo "   python cli_app.py"

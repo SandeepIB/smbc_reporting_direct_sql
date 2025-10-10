@@ -9,6 +9,17 @@ const CCRDeckAssistantPage = () => {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [uploadStatus, setUploadStatus] = useState('');
   const [cropConfig, setCropConfig] = useState({ rows: 2, cols: 3, enabled: false });
+  const [abortController, setAbortController] = useState(null);
+
+  const handleReset = () => {
+    setFiles([]);
+    setAnalysisResults(null);
+    setUploadStatus('');
+    setCropConfig({ rows: 2, cols: 3, enabled: false });
+    // Clear file input
+    const fileInput = document.getElementById('ccr-file-input');
+    if (fileInput) fileInput.value = '';
+  };
 
   const handleFileSelect = (e) => {
     const selectedFiles = Array.from(e.target.files);
@@ -22,6 +33,8 @@ const CCRDeckAssistantPage = () => {
       return;
     }
 
+    const controller = new AbortController();
+    setAbortController(controller);
     setIsAnalyzing(true);
     setUploadStatus('Uploading images...');
 
@@ -31,7 +44,8 @@ const CCRDeckAssistantPage = () => {
 
       await fetch(`${config.CCR_API_URL}/upload-images`, {
         method: 'POST',
-        body: formData
+        body: formData,
+        signal: controller.signal
       });
 
       setUploadStatus('Analyzing images with AI...');
@@ -40,21 +54,34 @@ const CCRDeckAssistantPage = () => {
       await fetch(`${config.CCR_API_URL}/configure-cropping`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(cropConfig)
+        body: JSON.stringify(cropConfig),
+        signal: controller.signal
       });
 
       const response = await fetch(`${config.CCR_API_URL}/analyze`, {
-        method: 'POST'
+        method: 'POST',
+        signal: controller.signal
       });
       const results = await response.json();
       
       setAnalysisResults(results);
       setUploadStatus('Analysis complete!');
     } catch (error) {
-      console.error('Analysis failed:', error);
-      setUploadStatus(`Analysis failed: ${error.message || 'Please try again'}`);
+      if (error.name === 'AbortError') {
+        setUploadStatus('Analysis cancelled');
+      } else {
+        console.error('Analysis failed:', error);
+        setUploadStatus(`Analysis failed: ${error.message || 'Please try again'}`);
+      }
     } finally {
       setIsAnalyzing(false);
+      setAbortController(null);
+    }
+  };
+
+  const handleCancelAnalysis = () => {
+    if (abortController) {
+      abortController.abort();
     }
   };
 
@@ -105,7 +132,12 @@ const CCRDeckAssistantPage = () => {
               
               {files.length > 0 && (
                 <div className="selected-files">
-                  <h3>{files.length} files selected</h3>
+                  <div className="files-header">
+                    <h3>{files.length} files selected</h3>
+                    <button onClick={handleReset} className="reset-button" title="Clear all files">
+                      🗑️ Clear
+                    </button>
+                  </div>
                   <div className="file-preview">
                     {files.slice(0, 3).map((file, index) => (
                       <img key={index} src={URL.createObjectURL(file)} alt={file.name} className="preview-thumb" />
@@ -145,22 +177,34 @@ const CCRDeckAssistantPage = () => {
               <h2>Generate Analysis</h2>
             </div>
             <div className="step-content">
-              <button 
-                onClick={handleAnalyze}
-                disabled={isAnalyzing || files.length === 0}
-                className="analyze-button"
-              >
-                {isAnalyzing ? (
-                  <>
-                    <div className="spinner"></div>
-                    Analyzing Images...
-                  </>
-                ) : (
-                  <>
-                    🔍 Analyze Charts
-                  </>
+              <div className="analyze-actions">
+                <button 
+                  onClick={handleAnalyze}
+                  disabled={isAnalyzing || files.length === 0}
+                  className="analyze-button"
+                >
+                  {isAnalyzing ? (
+                    <>
+                      <div className="spinner"></div>
+                      Analyzing Images...
+                    </>
+                  ) : (
+                    <>
+                      🔍 Analyze Charts
+                    </>
+                  )}
+                </button>
+                
+                {isAnalyzing && (
+                  <button 
+                    onClick={handleCancelAnalysis}
+                    className="cancel-button"
+                    title="Cancel current analysis"
+                  >
+                    ❌ Cancel Analysis
+                  </button>
                 )}
-              </button>
+              </div>
               
               {uploadStatus && (
                 <div className="status-indicator">
@@ -175,9 +219,14 @@ const CCRDeckAssistantPage = () => {
             <div className="results-panel">
               <div className="results-header">
                 <h2>📊 Analysis Results</h2>
-                <button onClick={handleDownload} className="download-button">
-                  📥 Download Report
-                </button>
+                <div className="results-actions">
+                  <button onClick={handleReset} className="reset-button">
+                    🔄 New Analysis
+                  </button>
+                  <button onClick={handleDownload} className="download-button">
+                    📥 Download Report
+                  </button>
+                </div>
               </div>
               
               <div className="results-grid">
@@ -192,13 +241,25 @@ const CCRDeckAssistantPage = () => {
                 </div>
 
                 {analysisResults.graph_insights?.map((insight, index) => (
-                  <div key={index} className="result-card insight">
-                    <h4>{insight.title}</h4>
-                    <div className="insight-detail">
-                      <strong>Trend:</strong> {insight.trend}
-                    </div>
-                    <div className="insight-detail">
-                      <strong>Recommendation:</strong> {insight.recommendation}
+                  <div key={index} className="result-card insight-with-image">
+                    <div className="insight-layout">
+                      <div className="insight-thumbnail">
+                        <div className="chart-placeholder">
+                          📊
+                        </div>
+                        <span className="image-filename">{insight.filename}</span>
+                      </div>
+                      <div className="insight-content">
+                        <h4>{insight.title}</h4>
+                        <div className="insight-section">
+                          <strong>Trend:</strong>
+                          <p>{insight.trend}</p>
+                        </div>
+                        <div className="insight-section">
+                          <strong>Recommendation:</strong>
+                          <p>{insight.recommendation}</p>
+                        </div>
+                      </div>
                     </div>
                   </div>
                 ))}

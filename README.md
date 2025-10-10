@@ -26,7 +26,10 @@ A comprehensive full-stack application that converts natural language prompts in
 
 1. Install backend dependencies:
 ```bash
-pip install -r requirements.txt
+pip install -r backend/requirements.txt
+
+# Or install specific missing dependencies:
+pip install python-multipart pillow python-pptx
 ```
 
 2. Setup frontend (with security fixes):
@@ -41,6 +44,9 @@ pip install -r requirements.txt
 cd frontend
 npm install --legacy-peer-deps
 npm audit fix
+
+# Build the application (required for production)
+npm run build
 ```
 
 2. Configure environment variables in `.env`:
@@ -84,12 +90,14 @@ REACT_APP_CCR_API_URL=http://localhost:8001
 
 ### Full-Stack Application (Recommended)
 ```bash
-# Start both backend API and frontend web interface
+# Start all services (Main API + CCR API + Frontend)
 ./start_fullstack.sh
 
-# For CCR Deck Assistant functionality, also start:
-cd smbc_reporting_tool
-python -m uvicorn backend.main:app --host 0.0.0.0 --port 8001 --reload
+# If frontend connection issues occur:
+./debug_frontend.sh
+
+# Or start frontend in production mode:
+./start_frontend_production.sh
 ```
 
 Then open http://localhost:3000 in your browser.
@@ -119,8 +127,13 @@ API will be available at http://localhost:8000
 
 ### Frontend Only
 ```bash
-# Start React development server
+# Option 1: Development server (recommended for development)
 ./run_frontend.sh
+
+# Option 2: Production build and serve (recommended for production)
+cd frontend
+npm run build
+npx serve -s build -l 3000
 ```
 
 Web interface will be available at http://localhost:3000

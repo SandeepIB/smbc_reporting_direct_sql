@@ -129,6 +129,7 @@ const ChatPage = () => {
       }
       
       // Clean the question text to remove any problematic Unicode characters
+      // eslint-disable-next-line no-control-regex
       userQuestion = userQuestion.replace(/[^\x00-\x7F]/g, '').trim();
       
       const reportData = await chatService.generateReport(

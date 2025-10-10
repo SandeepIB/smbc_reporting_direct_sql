@@ -1,30 +1,29 @@
 import React, { useState, useRef, useEffect } from 'react';
 import FeedbackSection from './FeedbackSection';
-import config from '../config/api';
 import './ChatInterface.css';
 
-// Info icon component
-const InfoIcon = ({ onClick, isExpanded }) => (
-  <button
-    onClick={onClick}
-    className={`ml-2 p-1 rounded-full hover:bg-gray-100 transition-colors ${
-      isExpanded ? 'bg-gray-100' : ''
-    }`}
-    title="Show SQL query and raw data"
-  >
-    <svg
-      width="16"
-      height="16"
-      viewBox="0 0 24 24"
-      fill="none"
-      className="text-gray-500 hover:text-gray-700"
-    >
-      <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2" />
-      <path d="M9,9h0a3,3,0,0,1,6,0c0,2-3,3-3,3" stroke="currentColor" strokeWidth="2" />
-      <path d="M12,17h0" stroke="currentColor" strokeWidth="2" />
-    </svg>
-  </button>
-);
+// Info icon component (unused but kept for future use)
+// const InfoIcon = ({ onClick, isExpanded }) => (
+//   <button
+//     onClick={onClick}
+//     className={`ml-2 p-1 rounded-full hover:bg-gray-100 transition-colors ${
+//       isExpanded ? 'bg-gray-100' : ''
+//     }`}
+//     title="Show SQL query and raw data"
+//   >
+//     <svg
+//       width="16"
+//       height="16"
+//       viewBox="0 0 24 24"
+//       fill="none"
+//       className="text-gray-500 hover:text-gray-700"
+//     >
+//       <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2" />
+//       <path d="M9,9h0a3,3,0,0,1,6,0c0,2-3,3-3,3" stroke="currentColor" strokeWidth="2" />
+//       <path d="M12,17h0" stroke="currentColor" strokeWidth="2" />
+//     </svg>
+//   </button>
+// );
 
 // Edit Question component
 const EditQuestionSection = ({ originalQuestion, onEditSubmit, onCancel }) => {

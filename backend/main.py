@@ -1,5 +1,7 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, UploadFile, File
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import FileResponse
+from typing import List
 from contextlib import asynccontextmanager
 from pydantic import BaseModel
 import logging
@@ -7,15 +9,21 @@ import uuid
 from datetime import datetime
 import sys
 import os
+import shutil
+import tempfile
 
 # Add parent directory to path to import existing modules
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+# Add CCR tool path
+sys.path.append(os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'smbc_reporting_tool', 'backend'))
 
 from src.core.config import Config
 from src.services.schema_cache import SchemaCache
 from src.services.database import DatabaseManager
 from src.services.ai_service import AIService
 from feedback_service import FeedbackService
+from ccr_endpoints import upload_images, configure_cropping, analyze, download_report
 
 from dotenv import load_dotenv
 load_dotenv()
@@ -820,6 +828,23 @@ async def admin_login(request: AdminLoginRequest):
     except Exception as e:
         logger.error(f"Error during admin login: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
+
+# CCR Endpoints
+@app.post("/upload-images")
+async def upload_images_endpoint(files: List[UploadFile] = File(...)):
+    return await upload_images(files)
+
+@app.post("/configure-cropping")
+async def configure_cropping_endpoint(config: dict):
+    return await configure_cropping(config)
+
+@app.post("/analyze")
+async def analyze_endpoint():
+    return await analyze()
+
+@app.get("/download-report")
+async def download_report_endpoint():
+    return await download_report()
 
 if __name__ == "__main__":
     import uvicorn

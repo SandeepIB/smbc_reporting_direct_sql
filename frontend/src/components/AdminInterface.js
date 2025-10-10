@@ -8,7 +8,7 @@ const AdminInterface = () => {
   const [trainingData, setTrainingData] = useState([]);
   const [newTraining, setNewTraining] = useState({ question: '', answer: '', context: '' });
   const [newFeedback, setNewFeedback] = useState({ original_query: '', feedback: '', sql_query: '', response: '' });
-  const [editingFeedback, setEditingFeedback] = useState(null);
+  // const [editingFeedback, setEditingFeedback] = useState(null);
   const [loading, setLoading] = useState(false);
   const [activeTab, setActiveTab] = useState('pending');
   const [showAddTrainingModal, setShowAddTrainingModal] = useState(false);
@@ -102,18 +102,18 @@ const AdminInterface = () => {
     }
   };
 
-  const updateFeedback = async (feedbackId, updateData) => {
-    setLoading(true);
-    try {
-      await chatService.updateFeedback(feedbackId, updateData);
-      setEditingFeedback(null);
-      await loadAllFeedbacks();
-    } catch (error) {
-      console.error('Error updating feedback:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
+  // const updateFeedback = async (feedbackId, updateData) => {
+  //   setLoading(true);
+  //   try {
+  //     await chatService.updateFeedback(feedbackId, updateData);
+  //     setEditingFeedback(null);
+  //     await loadAllFeedbacks();
+  //   } catch (error) {
+  //     console.error('Error updating feedback:', error);
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
 
   const deleteFeedback = async (feedbackId) => {
     if (!window.confirm('Are you sure you want to delete this feedback?')) return;
@@ -304,12 +304,12 @@ const AdminInterface = () => {
                       <td className="text-cell">{feedback.feedback}</td>
                       <td>{new Date(feedback.created_at).toLocaleDateString()}</td>
                       <td>
-                        <button 
+                        {/* <button 
                           onClick={() => setEditingFeedback(feedback.id)}
                           className="btn-edit"
                         >
                           ✏️
-                        </button>
+                        </button> */}
                         <button 
                           onClick={() => deleteFeedback(feedback.id)}
                           disabled={loading}
