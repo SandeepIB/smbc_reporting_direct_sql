@@ -70,6 +70,7 @@ const LandingPage = ({ onOpenChat, onOpenAdmin }) => {
           role="navigation"
           aria-label="Main navigation"
         >
+          <div className="nav-item" tabIndex="0" role="button">CCR Deck Assistant</div>
           <div className="nav-item" tabIndex="0" role="button">Analytics Tools</div>
           <div className="nav-item" tabIndex="0" role="button">Business Support Tools</div>
           <div className="nav-item" tabIndex="0" role="button">Reporting Dashboard</div>
