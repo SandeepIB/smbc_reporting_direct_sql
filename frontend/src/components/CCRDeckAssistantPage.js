@@ -43,7 +43,9 @@ const CCRDeckAssistantPage = () => {
         });
       }
 
-      const response = await fetch('http://localhost:8001/analyze');
+      const response = await fetch('http://localhost:8001/analyze', {
+        method: 'POST'
+      });
       const results = await response.json();
       
       setAnalysisResults(results);
