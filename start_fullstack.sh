@@ -79,7 +79,8 @@ fi
 # Start frontend with custom port and backend URL
 echo "🎨 Starting frontend React app on port $FRONTEND_PORT..."
 cd frontend
-PORT=$FRONTEND_PORT REACT_APP_BACKEND_URL=http://localhost:$BACKEND_PORT npm start &
+HOST_IP=$(hostname -I | awk '{print $1}')
+PORT=$FRONTEND_PORT REACT_APP_BACKEND_URL=http://$HOST_IP:$BACKEND_PORT npm start &
 FRONTEND_PID=$!
 cd ..
 
