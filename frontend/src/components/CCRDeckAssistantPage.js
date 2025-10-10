@@ -7,7 +7,7 @@ const CCRDeckAssistantPage = () => {
   const [analysisResults, setAnalysisResults] = useState(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [uploadStatus, setUploadStatus] = useState('');
-  const [cropConfig, setCropConfig] = useState({ rows: 2, cols: 3, enabled: true });
+  const [cropConfig, setCropConfig] = useState({ rows: 2, cols: 3, enabled: false });
 
   const handleFileSelect = (e) => {
     const selectedFiles = Array.from(e.target.files);
