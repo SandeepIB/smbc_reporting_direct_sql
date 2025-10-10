@@ -51,11 +51,10 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(title="Counterparty Risk Assistant API", version="1.0.0", lifespan=lifespan)
 
-allowed_origins = os.getenv("ALLOWED_ORIGINS", "").split(",")
 # CORS middleware
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[origin.strip() for origin in allowed_origins if origin],
+    allow_origins=["*"],  # Allow all origins for development
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
