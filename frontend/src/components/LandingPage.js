@@ -26,7 +26,8 @@ const LandingPage = ({ onOpenChat, onOpenAdmin }) => {
   useEffect(() => {
     const fetchSampleData = async () => {
       try {
-        const response = await fetch('http://localhost:8000/api/sample-data');
+        const API_BASE_URL = process.env.REACT_APP_BACKEND_URL || `http://${window.location.hostname}:8000`;
+        const response = await fetch(`${API_BASE_URL}/api/sample-data`);
         const result = await response.json();
         if (result.success && result.data) {
           setSampleData(result.data);

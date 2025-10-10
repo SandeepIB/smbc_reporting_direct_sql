@@ -17,6 +17,10 @@ from src.services.database import DatabaseManager
 from src.services.ai_service import AIService
 from feedback_service import FeedbackService
 
+from dotenv import load_dotenv
+load_dotenv()
+
+
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -50,7 +54,7 @@ app = FastAPI(title="Counterparty Risk Assistant API", version="1.0.0", lifespan
 # CORS middleware
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000"],  # React dev server
+    allow_origins=[ os.getenv('REACT_APP_FRONTEND_URL'),  os.getenv('REACT_APP_LOCAL_URL')],  # React dev server
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
