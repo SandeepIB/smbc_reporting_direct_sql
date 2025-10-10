@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import './LandingPage.css';
 
-const LandingPage = ({ onOpenChat, onOpenAdmin, onOpenCCR }) => {
+const LandingPage = () => {
+  const navigate = useNavigate();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [activeTab, setActiveTab] = useState('summary');
   const [activeSubTab, setActiveSubTab] = useState('trade-data');
@@ -71,7 +73,7 @@ const LandingPage = ({ onOpenChat, onOpenAdmin, onOpenCCR }) => {
           role="navigation"
           aria-label="Main navigation"
         >
-          <div className="nav-item" tabIndex="0" role="button" onClick={onOpenCCR}>CCR Deck Assistant</div>
+          <div className="nav-item" tabIndex="0" role="button" onClick={() => navigate('/ccr')}>CCR Deck Assistant</div>
           <div className="nav-item" tabIndex="0" role="button">Analytics Tools</div>
           <div className="nav-item" tabIndex="0" role="button">Business Support Tools</div>
           <div className="nav-item" tabIndex="0" role="button">Reporting Dashboard</div>
@@ -80,7 +82,7 @@ const LandingPage = ({ onOpenChat, onOpenAdmin, onOpenCCR }) => {
         </nav>
 
         <div className={`nav-right ${isMenuOpen ? 'show' : ''}`}>
-          <button className="nav-link" onClick={onOpenAdmin}>Admin Panel</button>
+          <button className="nav-link" onClick={() => navigate('/admin')}>Admin Panel</button>
           <div
             className="user-icon"
             tabIndex="0"
@@ -131,7 +133,7 @@ const LandingPage = ({ onOpenChat, onOpenAdmin, onOpenCCR }) => {
                 </div>
 
                 <div className="action-buttons">
-                  <button className="btn btn-primary" onClick={onOpenChat}>
+                  <button className="btn btn-primary" onClick={() => navigate('/chat')}>
                     Ask Question
                   </button>
                   <button className="btn btn-secondary">
@@ -292,7 +294,7 @@ const LandingPage = ({ onOpenChat, onOpenAdmin, onOpenCCR }) => {
         </div>
       </main>
 
-      <button className="chatbot-btn" onClick={onOpenChat} title="Start Chat">
+      <button className="chatbot-btn" onClick={() => navigate('/chat')} title="Start Chat">
         💬
       </button>
     </div>

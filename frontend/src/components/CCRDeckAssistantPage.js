@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import './CCRDeckAssistantPage.css';
 
 const CCRDeckAssistantPage = () => {
+  const navigate = useNavigate();
   const [files, setFiles] = useState([]);
   const [analysisResults, setAnalysisResults] = useState(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
@@ -79,11 +81,11 @@ const CCRDeckAssistantPage = () => {
           </div>
           <h1>CCR Deck Assistant</h1>
           <button 
-            onClick={() => window.close()} 
+            onClick={() => navigate('/')} 
             className="close-page-btn"
-            title="Close Window"
+            title="Back to Home"
           >
-            ×
+            ←
           </button>
         </div>
       </header>

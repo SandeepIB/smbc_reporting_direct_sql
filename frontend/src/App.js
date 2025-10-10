@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { BrowserRouter as Router, Routes, Route, useNavigate } from 'react-router-dom';
 import ChatInterface from './components/ChatInterface';
 import LandingPage from './components/LandingPage';
 import AdminLogin from './components/AdminLogin';
@@ -7,28 +8,18 @@ import CCRDeckAssistantPage from './components/CCRDeckAssistantPage';
 import { chatService } from './services/chatService';
 import './App.css';
 
-function App() {
+const ChatPage = () => {
   const [messages, setMessages] = useState([]);
   const [sessionId, setSessionId] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
-  const [showChat, setShowChat] = useState(false);
-  const [showAdmin, setShowAdmin] = useState(false);
-  const [showCCRPage, setShowCCRPage] = useState(false);
-  const [isAdminLoggedIn, setIsAdminLoggedIn] = useState(() => {
-    return localStorage.getItem('adminLoggedIn') === 'true';
-  });
+  const navigate = useNavigate();
 
   useEffect(() => {
-    // Generate session ID on app start
     const newSessionId = Date.now().toString();
     setSessionId(newSessionId);
-    
-    // Check if this is the CCR page based on URL parameter
-    const urlParams = new URLSearchParams(window.location.search);
-    if (urlParams.get('page') === 'ccr') {
-      setShowCCRPage(true);
-    }
   }, []);
+
+
 
   const sendMessage = async (message) => {
     if (!message.trim()) return;
@@ -436,77 +427,71 @@ function App() {
     }
   };
 
-  const handleOpenChat = () => {
-    setShowChat(true);
-  };
 
-  const handleCloseChat = () => {
-    setShowChat(false);
-  };
+
+
+
+  return (
+    <div className="chat-container">
+      <button className="close-chat-btn" onClick={() => navigate('/')} title="Back to Home">
+        ← Back
+      </button>
+      <ChatInterface 
+        messages={messages}
+        onSendMessage={sendMessage}
+        onConfirmQuestion={confirmQuestion}
+        onRefineMessage={refineMessage}
+        onDownloadReport={downloadReport}
+        onFeedback={handleFeedback}
+        isLoading={isLoading}
+      />
+    </div>
+  );
+};
+
+const AdminPageWrapper = () => {
+  const [isAdminLoggedIn, setIsAdminLoggedIn] = useState(() => {
+    return localStorage.getItem('adminLoggedIn') === 'true';
+  });
+  const navigate = useNavigate();
 
   const handleAdminLogin = (success) => {
     if (success) {
       setIsAdminLoggedIn(true);
-      setShowAdmin(true);
       localStorage.setItem('adminLoggedIn', 'true');
     }
   };
 
   const handleAdminLogout = () => {
     setIsAdminLoggedIn(false);
-    setShowAdmin(false);
     localStorage.removeItem('adminLoggedIn');
   };
 
   const handleBackToHome = () => {
-    setShowChat(false);
-    setShowAdmin(false);
+    navigate('/');
   };
 
-  const handleOpenAdmin = () => {
-    if (isAdminLoggedIn) {
-      setShowAdmin(true);
-    } else {
-      setShowAdmin(true);
-      setIsAdminLoggedIn(false);
-    }
-  };
-
-  const handleOpenCCR = () => {
-    const ccrUrl = `${window.location.origin}${window.location.pathname}?page=ccr`;
-    window.open(ccrUrl, '_blank', 'width=1200,height=800,scrollbars=yes,resizable=yes');
-  };
-
-  return (
-    <div className="App">
-      {showCCRPage ? (
-        <CCRDeckAssistantPage />
-      ) : showAdmin ? (
-        isAdminLoggedIn ? (
-          <AdminPage onLogout={handleAdminLogout} onBackToHome={handleBackToHome} />
-        ) : (
-          <AdminLogin onLogin={handleAdminLogin} />
-        )
-      ) : !showChat ? (
-        <LandingPage onOpenChat={handleOpenChat} onOpenAdmin={handleOpenAdmin} onOpenCCR={handleOpenCCR} />
-      ) : (
-        <div className="chat-container">
-          <button className="close-chat-btn" onClick={handleCloseChat} title="Back to Home">
-            ← Back
-          </button>
-          <ChatInterface 
-            messages={messages}
-            onSendMessage={sendMessage}
-            onConfirmQuestion={confirmQuestion}
-            onRefineMessage={refineMessage}
-            onDownloadReport={downloadReport}
-            onFeedback={handleFeedback}
-            isLoading={isLoading}
-          />
-        </div>
-      )}
-    </div>
+  return isAdminLoggedIn ? (
+    <AdminPage onLogout={handleAdminLogout} onBackToHome={handleBackToHome} />
+  ) : (
+    <AdminLogin onLogin={handleAdminLogin} />
   );
+};
+
+function App() {
+  return (
+    <Router>
+      <div className="App">
+        <Routes>
+          <Route path="/" element={<LandingPage />} />
+          <Route path="/chat" element={<ChatPage />} />
+          <Route path="/ccr" element={<CCRDeckAssistantPage />} />
+          <Route path="/admin" element={<AdminPageWrapper />} />
+        </Routes>
+      </div>
+    </Router>
+  );
+}
 }
 
 export default App;
