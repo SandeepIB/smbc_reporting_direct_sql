@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import CCRDeckAssistant from './CCRDeckAssistant';
 import './LandingPage.css';
 
 const LandingPage = ({ onOpenChat, onOpenAdmin }) => {
@@ -9,6 +10,7 @@ const LandingPage = ({ onOpenChat, onOpenAdmin }) => {
   const [isLoading, setIsLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(10);
+  const [showCCRAssistant, setShowCCRAssistant] = useState(false);
 
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);
@@ -70,7 +72,7 @@ const LandingPage = ({ onOpenChat, onOpenAdmin }) => {
           role="navigation"
           aria-label="Main navigation"
         >
-          <div className="nav-item" tabIndex="0" role="button">CCR Deck Assistant</div>
+          <div className="nav-item" tabIndex="0" role="button" onClick={() => setShowCCRAssistant(true)}>CCR Deck Assistant</div>
           <div className="nav-item" tabIndex="0" role="button">Analytics Tools</div>
           <div className="nav-item" tabIndex="0" role="button">Business Support Tools</div>
           <div className="nav-item" tabIndex="0" role="button">Reporting Dashboard</div>
@@ -294,6 +296,10 @@ const LandingPage = ({ onOpenChat, onOpenAdmin }) => {
       <button className="chatbot-btn" onClick={onOpenChat} title="Start Chat">
         💬
       </button>
+      
+      {showCCRAssistant && (
+        <CCRDeckAssistant onClose={() => setShowCCRAssistant(false)} />
+      )}
     </div>
   );
 };
