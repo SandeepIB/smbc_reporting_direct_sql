@@ -28,7 +28,7 @@ const CCRDeckAssistantPage = () => {
       const formData = new FormData();
       files.forEach(file => formData.append('files', file));
 
-      await fetch('http://localhost:8001/upload', {
+      await fetch('http://localhost:8001/upload-images', {
         method: 'POST',
         body: formData
       });
