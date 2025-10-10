@@ -5,6 +5,7 @@ import LandingPage from './components/LandingPage';
 import AdminLogin from './components/AdminLogin';
 import AdminPage from './components/AdminPage';
 import CCRDeckAssistantPage from './components/CCRDeckAssistantPage';
+import CommonHeader from './components/CommonHeader';
 import { chatService } from './services/chatService';
 import './App.css';
 
@@ -12,7 +13,6 @@ const ChatPage = () => {
   const [messages, setMessages] = useState([]);
   const [sessionId, setSessionId] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
-  const navigate = useNavigate();
 
   useEffect(() => {
     const newSessionId = Date.now().toString();
@@ -432,19 +432,20 @@ const ChatPage = () => {
 
 
   return (
-    <div className="chat-container">
-      <button className="close-chat-btn" onClick={() => navigate('/')} title="Back to Home">
-        ← Back
-      </button>
-      <ChatInterface 
-        messages={messages}
-        onSendMessage={sendMessage}
-        onConfirmQuestion={confirmQuestion}
-        onRefineMessage={refineMessage}
-        onDownloadReport={downloadReport}
-        onFeedback={handleFeedback}
-        isLoading={isLoading}
-      />
+    <div className="page-container">
+      <CommonHeader title="Counterparty Risk Assistant" />
+      <div className="page-content">
+        <ChatInterface 
+          messages={messages}
+          onSendMessage={sendMessage}
+          onConfirmQuestion={confirmQuestion}
+          onRefineMessage={refineMessage}
+          onDownloadReport={downloadReport}
+          onFeedback={handleFeedback}
+          isLoading={isLoading}
+          hideHeader={true}
+        />
+      </div>
     </div>
   );
 };

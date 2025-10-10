@@ -2,6 +2,17 @@
   min-height: 100vh;
 }
 
+.page-container {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.page-content {
+  flex: 1;
+  background-color: #f5f3f0;
+}
+
 .chat-container {
   position: relative;
   min-height: 100vh;

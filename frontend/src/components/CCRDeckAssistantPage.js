@@ -1,9 +1,8 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import CommonHeader from './CommonHeader';
 import './CCRDeckAssistantPage.css';
 
 const CCRDeckAssistantPage = () => {
-  const navigate = useNavigate();
   const [files, setFiles] = useState([]);
   const [analysisResults, setAnalysisResults] = useState(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
@@ -74,22 +73,7 @@ const CCRDeckAssistantPage = () => {
 
   return (
     <div className="ccr-page">
-      <header className="ccr-page-header">
-        <div className="header-content">
-          <div className="logo">
-            <img src="/logo.JPG" alt="SMBC Logo" className="logo-image" />
-          </div>
-          <h1>CCR Deck Assistant</h1>
-          <button 
-            onClick={() => navigate('/')} 
-            className="close-page-btn"
-            title="Back to Home"
-          >
-            ←
-          </button>
-        </div>
-      </header>
-
+      <CommonHeader title="CCR Deck Assistant" />
       <main className="ccr-page-content">
         <div className="ccr-container">
           <div className="upload-section">

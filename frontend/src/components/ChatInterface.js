@@ -354,7 +354,7 @@ const MessageDetails = ({ sqlQuery, rawData, rowCount, dataSources, isExpanded }
   );
 };
 
-const ChatInterface = ({ messages, onSendMessage, onConfirmQuestion, onRefineMessage, onDownloadReport, onFeedback, isLoading }) => {
+const ChatInterface = ({ messages, onSendMessage, onConfirmQuestion, onRefineMessage, onDownloadReport, onFeedback, isLoading, hideHeader = false }) => {
   const [inputValue, setInputValue] = useState('');
   const [expandedMessages, setExpandedMessages] = useState(new Set());
   const [isRefining, setIsRefining] = useState(false);
@@ -454,14 +454,16 @@ const ChatInterface = ({ messages, onSendMessage, onConfirmQuestion, onRefineMes
   return (
     <div className="chat-interface">
       {/* Header */}
-      <div className="chat-header">
-        <div className="header-content">
-          <div className="logo">
-            <div className="logo-icon">🔍</div>
-            <span className="logo-text">Counterparty Risk Assistant</span>
+      {!hideHeader && (
+        <div className="chat-header">
+          <div className="header-content">
+            <div className="logo">
+              <div className="logo-icon">🔍</div>
+              <span className="logo-text">Counterparty Risk Assistant</span>
+            </div>
           </div>
         </div>
-      </div>
+      )}
 
       {/* Messages Area */}
       <div className="messages-container">
