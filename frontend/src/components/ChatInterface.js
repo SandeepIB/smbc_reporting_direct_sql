@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import FeedbackSection from './FeedbackSection';
+import config from '../config/api';
 import './ChatInterface.css';
 
 // Info icon component

@@ -6,7 +6,7 @@ const CommonHeader = ({ title, showBackButton = true, showSearchIcon = true }) =
   const navigate = useNavigate();
 
   return (
-    <header className="common-header" style={{background: '#16312c', color: 'white', padding: '1rem 2rem', boxShadow: '0 2px 10px rgba(0,0,0,0.1)'}}>
+    <header className="common-header" style={{background: 'rgba(0,75,53,.7)', color: 'white', padding: '1rem 2rem', boxShadow: '0 2px 10px rgba(0,0,0,0.1)'}}>
       <div className="header-content" style={{display: 'flex', alignItems: 'center', justifyContent: 'space-between', maxWidth: '1200px', margin: '0 auto'}}>
         <div className="header-left" style={{display: 'flex', alignItems: 'center', gap: '1rem'}}>
           <div className="logo" onClick={() => navigate('/')} style={{cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.5rem'}}>

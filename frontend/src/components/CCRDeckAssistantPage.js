@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import CommonHeader from './CommonHeader';
+import config from '../config/api';
 import './CCRDeckAssistantPage.css';
 
 const CCRDeckAssistantPage = () => {
@@ -28,22 +29,21 @@ const CCRDeckAssistantPage = () => {
       const formData = new FormData();
       files.forEach(file => formData.append('files', file));
 
-      await fetch('http://localhost:8001/upload-images', {
+      await fetch(`${config.CCR_API_URL}/upload-images`, {
         method: 'POST',
         body: formData
       });
 
       setUploadStatus('Analyzing images with AI...');
 
-      if (cropConfig.enabled) {
-        await fetch('http://localhost:8001/configure-cropping', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(cropConfig)
-        });
-      }
+      // Always send cropping configuration to backend
+      await fetch(`${config.CCR_API_URL}/configure-cropping`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(cropConfig)
+      });
 
-      const response = await fetch('http://localhost:8001/analyze', {
+      const response = await fetch(`${config.CCR_API_URL}/analyze`, {
         method: 'POST'
       });
       const results = await response.json();
@@ -60,7 +60,7 @@ const CCRDeckAssistantPage = () => {
 
   const handleDownload = async () => {
     try {
-      const response = await fetch('http://localhost:8001/download-report');
+      const response = await fetch(`${config.CCR_API_URL}/download-report`);
       const blob = await response.blob();
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');

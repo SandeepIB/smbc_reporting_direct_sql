@@ -1,13 +1,15 @@
-# Full-Stack Counterparty Risk Assistant Application Setup
+# Prompts to Insights - SMBC Risk Management Suite Setup
 
-This guide will help you set up and run the complete application with both CLI and web interfaces.
+This guide will help you set up and run the complete application with CLI, web chat interface, and CCR Deck Assistant for chart analysis.
 
 ## Prerequisites
 
 - Python 3.8+
 - Node.js 16+
 - MySQL database
-- OpenAI API key
+- OpenAI API key (GPT-4 access recommended for CCR analysis)
+- PIL/Pillow for image processing
+- python-pptx for PowerPoint generation
 
 ## Installation
 
@@ -15,10 +17,13 @@ This guide will help you set up and run the complete application with both CLI a
 
 ```bash
 # Navigate to project root
-cd /var/www/html/approch2-direct-sql
+cd /var/www/html/SMBC/smbc_reporting_direct_sql
 
-# Install Python dependencies
+# Install Python dependencies for main backend
 pip install -r backend/requirements.txt
+
+# Install additional dependencies for CCR functionality
+pip install pillow python-pptx
 
 # Configure environment variables
 cp .env.example .env
@@ -31,8 +36,11 @@ cp .env.example .env
 # Navigate to frontend directory
 cd frontend
 
-# Install Node.js dependencies
-npm install
+# Install Node.js dependencies with legacy peer deps for compatibility
+npm install --legacy-peer-deps
+
+# Fix any security vulnerabilities
+npm audit fix
 ```
 
 ### 3. Environment Configuration
@@ -58,6 +66,44 @@ ALLOWED_TABLES=
 # Admin Credentials (for demo)
 ADMIN_USERNAME=admin
 ADMIN_PASSWORD=admin123
+```
+
+### 4. Frontend API Configuration (Optional)
+
+Create `frontend/.env` file to customize API URLs. The system supports:
+
+#### **Localhost (Default)**
+```env
+REACT_APP_MAIN_API_URL=http://localhost:8000
+REACT_APP_CCR_API_URL=http://localhost:8001
+```
+
+#### **IP Addresses**
+```env
+# Same server, different ports
+REACT_APP_MAIN_API_URL=http://192.168.1.100:8000
+REACT_APP_CCR_API_URL=http://192.168.1.100:8001
+
+# Different servers
+REACT_APP_MAIN_API_URL=http://10.0.0.5:8000
+REACT_APP_CCR_API_URL=http://10.0.0.6:8001
+```
+
+#### **Domain Names**
+```env
+# Production with domains
+REACT_APP_MAIN_API_URL=https://api.company.com
+REACT_APP_CCR_API_URL=https://ccr.company.com
+
+# Mixed setup
+REACT_APP_MAIN_API_URL=https://main-api.company.com:8000
+REACT_APP_CCR_API_URL=http://192.168.1.50:8001
+```
+
+#### **Custom Ports**
+```env
+REACT_APP_MAIN_API_URL=http://192.168.1.100:9000
+REACT_APP_CCR_API_URL=http://192.168.1.100:9001
 ```
 
 ## Running the Application
@@ -90,16 +136,27 @@ python main.py
 uvicorn main:app --host 0.0.0.0 --port 8000 --reload
 ```
 
-#### Start Frontend (Terminal 2)
+#### Start CCR Backend (Terminal 2)
+```bash
+# From project root
+cd smbc_reporting_tool
+python -m uvicorn backend.main:app --host 0.0.0.0 --port 8001 --reload
+```
+
+#### Start Frontend (Terminal 3)
 ```bash
 # From project root
 cd frontend
 npm start
 ```
 
-The web interface will be available at: http://localhost:3000
-The API will be available at: http://localhost:8000
-The admin interface will be available at: http://localhost:3000 (click gear icon)
+The application will be available at:
+- **Landing Page**: http://localhost:3000
+- **Chat Interface**: http://localhost:3000/chat
+- **CCR Deck Assistant**: http://localhost:3000/ccr
+- **Admin Dashboard**: http://localhost:3000/admin
+- **Main API**: http://localhost:8000
+- **CCR API**: http://localhost:8001
 
 ## Admin Interface
 
@@ -132,6 +189,7 @@ You can run both interfaces simultaneously:
 
 ## API Endpoints
 
+### Main Backend (Port 8000)
 - `GET /health` - Health check
 - `POST /chat` - Send message to chatbot
 - `GET /sessions/{session_id}/history` - Get chat history
@@ -142,6 +200,12 @@ You can run both interfaces simultaneously:
 - `POST /admin/feedbacks/{id}/approve` - Approve feedback
 - `GET /admin/training-data` - Get training data
 - `GET /api/sample-data` - Get sample data for landing page
+
+### CCR Backend (Port 8001)
+- `POST /upload-images` - Upload chart images for analysis
+- `POST /configure-cropping` - Configure image cropping settings
+- `POST /analyze` - Analyze uploaded images with OpenAI GPT-4
+- `GET /download-report` - Download PowerPoint report with analysis
 
 ## Features
 
@@ -159,15 +223,53 @@ The web interface includes quick-start cards for common queries:
 - "Key credit risk concentrations by MPE"
 
 ### Web Features
-- Modern chat interface with SMBC green branding
-- Pre-prompt cards for common counterparty risk questions
-- Expandable results section showing SQL query and raw data
-- Feedback system with thumbs up/down voting
-- Executive PDF report generation
-- Admin dashboard for feedback management
-- Session-based conversations
-- Real-time responses with typing indicators
-- Mobile-responsive design
+- **Professional Landing Page**: Feature showcase with navigation
+- **Modern Chat Interface**: SMBC green branding with typing indicators
+- **Pre-prompt Cards**: Quick-start questions for common counterparty risk queries
+- **Expandable Results**: SQL query and raw data display
+- **Feedback System**: Thumbs up/down voting with admin review
+- **Executive PDF Reports**: Automated report generation
+- **CCR Deck Assistant**: AI-powered chart analysis with configurable cropping
+- **PowerPoint Generation**: Automated slide deck creation with insights
+- **Admin Dashboard**: Feedback management and training data curation
+- **React Router Navigation**: Clean URL structure (/chat, /ccr, /admin)
+- **Session Management**: Multi-user support with chat history
+- **Mobile-responsive Design**: Optimized for all devices
+
+## Network Configuration
+
+### Supported Configurations
+- **Single Server**: Both APIs on same machine with different ports
+- **Multiple Servers**: APIs distributed across different machines
+- **Cloud Deployment**: APIs hosted on cloud services with public IPs
+- **Docker**: Containerized deployment with custom networking
+- **Load Balancer**: APIs behind load balancers with custom domains
+
+### Configuration Examples by Scenario
+
+#### **Development (Local)**
+```env
+REACT_APP_MAIN_API_URL=http://localhost:8000
+REACT_APP_CCR_API_URL=http://localhost:8001
+```
+
+#### **LAN Deployment**
+```env
+REACT_APP_MAIN_API_URL=http://192.168.1.100:8000
+REACT_APP_CCR_API_URL=http://192.168.1.100:8001
+```
+
+#### **Multi-Server Setup**
+```env
+REACT_APP_MAIN_API_URL=http://10.0.1.10:8000
+REACT_APP_CCR_API_URL=http://10.0.1.20:8001
+```
+
+#### **Production with SSL**
+```env
+REACT_APP_MAIN_API_URL=https://api.smbc.com
+REACT_APP_CCR_API_URL=https://ccr-api.smbc.com
+```
 
 ## Troubleshooting
 
