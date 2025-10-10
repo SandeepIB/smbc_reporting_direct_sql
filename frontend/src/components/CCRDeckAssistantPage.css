@@ -10,6 +10,8 @@
   padding: 2rem;
   max-width: 1000px;
   margin: 0 auto;
+  height: calc(100vh - 160px);
+  overflow-y: auto;
 }
 
 .ccr-workflow {
