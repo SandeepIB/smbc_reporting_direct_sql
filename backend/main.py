@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException, UploadFile, File
+from fastapi import FastAPI, HTTPException, UploadFile, File, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 from typing import List
@@ -845,6 +845,15 @@ async def analyze_endpoint():
 @app.get("/download-report")
 async def download_report_endpoint():
     return await download_report()
+
+@app.post("/download-report")
+async def download_report_post_endpoint(request: Request):
+    return await download_report(request)
+
+@app.get("/images/{filename}")
+async def get_image_endpoint(filename: str):
+    from ccr_endpoints import get_image
+    return await get_image(filename)
 
 if __name__ == "__main__":
     import uvicorn

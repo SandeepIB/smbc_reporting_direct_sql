@@ -1,5 +1,5 @@
 # CCR Endpoints for main backend
-from fastapi import HTTPException, UploadFile, File
+from fastapi import HTTPException, UploadFile, File, Request
 from fastapi.responses import FileResponse
 from typing import List
 import os
@@ -118,14 +118,41 @@ async def analyze():
         logger.error(f"Analysis error: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Analysis failed: {str(e)}")
 
-async def download_report():
+async def get_image(filename: str):
+    """Serve image files for thumbnails"""
+    if not CCR_AVAILABLE:
+        raise HTTPException(status_code=503, detail="CCR functionality not available")
+    
+    global temp_dir
+    
+    if not temp_dir or not os.path.exists(temp_dir):
+        raise HTTPException(status_code=404, detail="No images available")
+    
+    # Search for the image file in temp directory and subdirectories
+    for root, dirs, files in os.walk(temp_dir):
+        if filename in files:
+            file_path = os.path.join(root, filename)
+            return FileResponse(file_path, media_type="image/jpeg")
+    
+    raise HTTPException(status_code=404, detail="Image not found")
+
+async def download_report(request: Request = None):
     """Download PowerPoint report with analysis"""
     if not CCR_AVAILABLE:
         raise HTTPException(status_code=503, detail="CCR functionality not available")
     
     global analysis_results, temp_dir
     
-    if not analysis_results:
+    # Use edited data if provided, otherwise use original results
+    results_to_use = analysis_results
+    if request and request.method == 'POST':
+        try:
+            body = await request.json()
+            results_to_use = body.get('editedResults', analysis_results)
+        except:
+            pass
+    
+    if not results_to_use:
         raise HTTPException(status_code=400, detail="No analysis results available")
     
     try:
@@ -134,7 +161,7 @@ async def download_report():
         report_path = os.path.join(tempfile.gettempdir(), report_filename)
         
         graph_insights_full = []
-        for insight in analysis_results["graph_insights"]:
+        for insight in results_to_use["graph_insights"]:
             full_path = None
             for root, dirs, files in os.walk(temp_dir):
                 if insight["filename"] in files:
@@ -154,7 +181,7 @@ async def download_report():
         
         if graph_insights_full:
             generate_ppt_report(
-                analysis_results["executive_summary"],
+                results_to_use["executive_summary"],
                 graph_insights_full,
                 report_path
             )

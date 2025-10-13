@@ -10,6 +10,9 @@ const CCRDeckAssistantPage = () => {
   const [uploadStatus, setUploadStatus] = useState('');
   const [cropConfig, setCropConfig] = useState({ rows: 2, cols: 3, enabled: false });
   const [abortController, setAbortController] = useState(null);
+  const [selectedImage, setSelectedImage] = useState(null);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editableResults, setEditableResults] = useState(null);
 
   const handleReset = () => {
     setFiles([]);
@@ -65,6 +68,7 @@ const CCRDeckAssistantPage = () => {
       const results = await response.json();
       
       setAnalysisResults(results);
+      setEditableResults(JSON.parse(JSON.stringify(results))); // Deep copy for editing
       setUploadStatus('Analysis complete!');
     } catch (error) {
       if (error.name === 'AbortError') {
@@ -87,7 +91,12 @@ const CCRDeckAssistantPage = () => {
 
   const handleDownload = async () => {
     try {
-      const response = await fetch(`${config.CCR_API_URL}/download-report`);
+      // Send edited results to backend for report generation
+      const response = await fetch(`${config.CCR_API_URL}/download-report`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ editedResults: editableResults || analysisResults })
+      });
       const blob = await response.blob();
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
@@ -98,6 +107,32 @@ const CCRDeckAssistantPage = () => {
       console.error('Download failed:', error);
       alert('Download failed. Please try again.');
     }
+  };
+
+  const handleEditToggle = () => {
+    if (!isEditing) {
+      setEditableResults(JSON.parse(JSON.stringify(analysisResults))); // Fresh copy
+    }
+    setIsEditing(!isEditing);
+  };
+
+  const handleTextChange = (section, field, value) => {
+    setEditableResults(prev => ({
+      ...prev,
+      [section]: {
+        ...prev[section],
+        [field]: value
+      }
+    }));
+  };
+
+  const handleInsightChange = (index, field, value) => {
+    setEditableResults(prev => ({
+      ...prev,
+      graph_insights: prev.graph_insights.map((insight, i) => 
+        i === index ? { ...insight, [field]: value } : insight
+      )
+    }));
   };
 
   return (
@@ -220,6 +255,9 @@ const CCRDeckAssistantPage = () => {
               <div className="results-header">
                 <h2>📊 Analysis Results</h2>
                 <div className="results-actions">
+                  <button onClick={handleEditToggle} className={`edit-button ${isEditing ? 'editing' : ''}`}>
+                    {isEditing ? '✅ Save Edits' : '✏️ Edit Text'}
+                  </button>
                   <button onClick={handleReset} className="reset-button">
                     🔄 New Analysis
                   </button>
@@ -233,36 +271,111 @@ const CCRDeckAssistantPage = () => {
                 <div className="result-card executive">
                   <h3>Executive Summary</h3>
                   <div className="summary-item">
-                    <strong>Trend:</strong> {analysisResults.executive_summary?.trend}
+                    <strong>Trend:</strong>
+                    {isEditing ? (
+                      <textarea
+                        value={editableResults?.executive_summary?.trend || ''}
+                        onChange={(e) => handleTextChange('executive_summary', 'trend', e.target.value)}
+                        className="edit-textarea"
+                        rows={4}
+                      />
+                    ) : (
+                      <span>{(editableResults || analysisResults).executive_summary?.trend}</span>
+                    )}
                   </div>
                   <div className="summary-item">
-                    <strong>Recommendation:</strong> {analysisResults.executive_summary?.recommendation}
+                    <strong>Recommendation:</strong>
+                    {isEditing ? (
+                      <textarea
+                        value={editableResults?.executive_summary?.recommendation || ''}
+                        onChange={(e) => handleTextChange('executive_summary', 'recommendation', e.target.value)}
+                        className="edit-textarea"
+                        rows={4}
+                      />
+                    ) : (
+                      <span>{(editableResults || analysisResults).executive_summary?.recommendation}</span>
+                    )}
                   </div>
                 </div>
 
                 {analysisResults.graph_insights?.map((insight, index) => (
                   <div key={index} className="result-card insight-with-image">
                     <div className="insight-layout">
-                      <div className="insight-thumbnail">
-                        <div className="chart-placeholder">
+                      <div className="insight-thumbnail" onClick={() => setSelectedImage(insight.filename)}>
+                        <img 
+                          src={`${config.CCR_API_URL}/images/${insight.filename}`}
+                          alt={insight.filename}
+                          className="thumbnail-image"
+                          onError={(e) => {
+                            e.target.style.display = 'none';
+                            e.target.nextSibling.style.display = 'block';
+                          }}
+                        />
+                        <div className="chart-placeholder" style={{display: 'none'}}>
                           📊
                         </div>
                         <span className="image-filename">{insight.filename}</span>
                       </div>
                       <div className="insight-content">
-                        <h4>{insight.title}</h4>
+                        <h4>
+                          {isEditing ? (
+                            <input
+                              type="text"
+                              value={editableResults?.graph_insights?.[index]?.title || insight.title}
+                              onChange={(e) => handleInsightChange(index, 'title', e.target.value)}
+                              className="edit-input"
+                            />
+                          ) : (
+                            (editableResults?.graph_insights?.[index]?.title || insight.title)
+                          )}
+                        </h4>
                         <div className="insight-section">
                           <strong>Trend:</strong>
-                          <p>{insight.trend}</p>
+                          {isEditing ? (
+                            <textarea
+                              value={editableResults?.graph_insights?.[index]?.trend || insight.trend}
+                              onChange={(e) => handleInsightChange(index, 'trend', e.target.value)}
+                              className="edit-textarea"
+                              rows={3}
+                            />
+                          ) : (
+                            <p>{editableResults?.graph_insights?.[index]?.trend || insight.trend}</p>
+                          )}
                         </div>
                         <div className="insight-section">
                           <strong>Recommendation:</strong>
-                          <p>{insight.recommendation}</p>
+                          {isEditing ? (
+                            <textarea
+                              value={editableResults?.graph_insights?.[index]?.recommendation || insight.recommendation}
+                              onChange={(e) => handleInsightChange(index, 'recommendation', e.target.value)}
+                              className="edit-textarea"
+                              rows={3}
+                            />
+                          ) : (
+                            <p>{editableResults?.graph_insights?.[index]?.recommendation || insight.recommendation}</p>
+                          )}
                         </div>
                       </div>
                     </div>
                   </div>
                 ))}
+                
+                {/* Image Popup Modal */}
+                {selectedImage && (
+                  <div className="image-modal" onClick={() => setSelectedImage(null)}>
+                    <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+                      <button className="close-button" onClick={() => setSelectedImage(null)}>
+                        ✕
+                      </button>
+                      <img 
+                        src={`${config.CCR_API_URL}/images/${selectedImage}`}
+                        alt={selectedImage}
+                        className="modal-image"
+                      />
+                      <div className="modal-filename">{selectedImage}</div>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           )}
