@@ -30,6 +30,10 @@ client = OpenAI(api_key=api_key) if api_key else None
 def get_available_templates() -> List[Dict]:
     """Get list of available PPT templates with metadata"""
     templates_dir = os.path.join(os.path.dirname(__file__), 'templates')
+    print(f"Looking for templates in: {templates_dir}")
+    print(f"Templates directory exists: {os.path.exists(templates_dir)}")
+    if os.path.exists(templates_dir):
+        print(f"Files in templates directory: {os.listdir(templates_dir)}")
     templates = []
     
     template_info = {
@@ -49,6 +53,10 @@ def get_available_templates() -> List[Dict]:
             "active": False
         }
     }
+    
+    if not os.path.exists(templates_dir):
+        print(f"Templates directory not found: {templates_dir}")
+        return []
     
     for filename in os.listdir(templates_dir):
         if filename.endswith('.pptx'):
