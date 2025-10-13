@@ -11,7 +11,11 @@
 .header-left {
   display: flex;
   align-items: center;
-  gap: 15px;
+}
+
+.header-right {
+  display: flex;
+  align-items: center;
 }
 
 .header-logo {

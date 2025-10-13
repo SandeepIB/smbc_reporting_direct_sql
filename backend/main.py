@@ -23,7 +23,7 @@ from src.services.schema_cache import SchemaCache
 from src.services.database import DatabaseManager
 from src.services.ai_service import AIService
 from feedback_service import FeedbackService
-from ccr_endpoints import upload_images, configure_cropping, analyze, download_report
+from ccr_endpoints import upload_images, configure_cropping, analyze, download_report, get_image
 
 
 from dotenv import load_dotenv
@@ -870,6 +870,10 @@ async def analyze_endpoint():
 @app.get("/download-report")
 async def download_report_endpoint():
     return await download_report()
+
+@app.get("/get-image/{filename}")
+async def get_image_endpoint(filename: str):
+    return await get_image(filename)
 
 if __name__ == "__main__":
     import uvicorn

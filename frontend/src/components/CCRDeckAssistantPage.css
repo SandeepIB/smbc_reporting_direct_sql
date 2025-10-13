@@ -1,6 +1,33 @@
 .ccr-page {
   min-height: 100vh;
+  height: auto !important;
   background: #f8f9fa;
+  overflow-y: auto;
+  position: relative;
+}
+
+/* Override App.css constraints */
+body:has(.ccr-page) {
+  overflow-y: auto !important;
+  height: auto !important;
+}
+
+.ccr-page .page-container {
+  min-height: auto !important;
+  height: auto !important;
+}
+
+.ccr-page .page-content {
+  min-height: auto !important;
+  height: auto !important;
+  flex: none !important;
+}
+
+/* Ensure main container allows scrolling */
+.ccr-page .App {
+  min-height: auto !important;
+  height: auto !important;
+  overflow-y: visible !important;
 }
 
 .ccr-header {
@@ -19,6 +46,8 @@
   padding: 20px;
   max-width: 1200px;
   margin: 0 auto;
+  overflow-y: visible;
+  height: auto;
 }
 
 .workflow-step {
@@ -109,6 +138,8 @@
   display: flex;
   align-items: center;
   gap: 8px;
+  pointer-events: auto;
+  z-index: 1;
 }
 
 .analyze-button:hover:not(:disabled) {
@@ -173,6 +204,10 @@
   border-radius: 8px;
   padding: 20px;
   margin-top: 20px;
+  margin-bottom: 40px;
+  overflow-y: visible;
+  position: relative;
+  z-index: 1;
 }
 
 .results-header {
@@ -206,6 +241,71 @@
 .chart-placeholder {
   font-size: 2rem;
   margin-bottom: 5px;
+}
+
+.chart-thumbnail {
+  width: 80px;
+  height: 60px;
+  object-fit: cover;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: transform 0.2s;
+  border: 1px solid #ddd;
+}
+
+.chart-thumbnail:hover {
+  transform: scale(1.05);
+  border-color: #004d26;
+}
+
+/* Image Zoom Modal */
+.image-zoom-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  cursor: pointer;
+}
+
+.zoom-modal-content {
+  position: relative;
+  max-width: 90%;
+  max-height: 90%;
+  cursor: default;
+}
+
+.zoomed-image {
+  max-width: 100%;
+  max-height: 100%;
+  border-radius: 8px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+}
+
+.close-zoom {
+  position: absolute;
+  top: -40px;
+  right: 0;
+  background: #fff;
+  border: none;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.close-zoom:hover {
+  background: #f0f0f0;
 }
 
 .setting-label {
@@ -315,6 +415,124 @@
 
 .ccr-workflow {
   max-width: 100%;
+  overflow-y: visible;
+  height: auto;
+  position: relative;
+}
+
+/* Common Edit functionality */
+.edit-all-button {
+  background: #004d26;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: all 0.2s;
+}
+
+.edit-all-button:hover {
+  background: #006400;
+}
+
+.save-all-button {
+  background: #28a745;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: all 0.2s;
+}
+
+.save-all-button:hover {
+  background: #218838;
+}
+
+.cancel-edit-button {
+  background: #dc3545;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: all 0.2s;
+}
+
+.cancel-edit-button:hover {
+  background: #c82333;
+}
+
+.edit-insight-form, .edit-executive-form {
+  background: #f8f9fa;
+  padding: 12px;
+  border-radius: 6px;
+  border: 1px solid #dee2e6;
+}
+
+.edit-field {
+  margin-bottom: 12px;
+}
+
+.edit-field strong {
+  display: block;
+  margin-bottom: 4px;
+  color: #004d26;
+}
+
+.edit-textarea {
+  width: 100%;
+  padding: 8px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-family: inherit;
+  font-size: 14px;
+  resize: vertical;
+}
+
+.edit-textarea:focus {
+  outline: none;
+  border-color: #004d26;
+  box-shadow: 0 0 0 2px rgba(0, 77, 38, 0.2);
+}
+
+.edit-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.save-edit-btn {
+  background: #28a745;
+  color: white;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 12px;
+  transition: all 0.2s;
+}
+
+.save-edit-btn:hover {
+  background: #218838;
+}
+
+.cancel-edit-btn {
+  background: #dc3545;
+  color: white;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 12px;
+  transition: all 0.2s;
+}
+
+.cancel-edit-btn:hover {
+  background: #c82333;
 }
 
 /* Responsive adjustments */
@@ -342,6 +560,16 @@
   }
   
   .results-actions {
+    flex-direction: column;
+  }
+  
+  .insight-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+  
+  .edit-actions {
     flex-direction: column;
   }
 }

@@ -14,11 +14,13 @@ const CommonHeader = ({ title }) => {
           className="header-logo" 
           onClick={() => navigate('/')}
         />
+      </div>
+      <h1 className="header-title">{title}</h1>
+      <div className="header-right">
         <button className="back-button" onClick={() => navigate('/')}>
           ← Back
         </button>
       </div>
-      <h1 className="header-title">{title}</h1>
     </div>
   );
 };

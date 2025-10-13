@@ -3,6 +3,20 @@
 # SMBC Counterparty Risk Assistant - Full Stack Startup Script
 echo "🚀 Starting SMBC Counterparty Risk Assistant..."
 
+# Kill existing processes on default ports
+echo "🔄 Stopping existing processes..."
+pkill -f "python.*main.py" 2>/dev/null || true
+pkill -f "node.*3000" 2>/dev/null || true
+pkill -f "serve.*3000" 2>/dev/null || true
+pkill -f "uvicorn.*8000" 2>/dev/null || true
+pkill -f "npm.*start" 2>/dev/null || true
+
+# Kill processes using default ports
+lsof -ti:3000 | xargs kill -9 2>/dev/null || true
+lsof -ti:8000 | xargs kill -9 2>/dev/null || true
+
+sleep 2
+
 # Check if Python is installed
 if ! command -v python3 &> /dev/null; then
     echo "❌ Python 3 is not installed. Please install Python 3.8+ first."
@@ -54,10 +68,10 @@ cleanup() {
 # Set up signal handlers
 trap cleanup SIGINT SIGTERM
 
-# Start backend server
+# Start backend server on default port 8000
 echo "🔧 Starting backend server on port 8000..."
 cd backend
-python main.py &
+python -m uvicorn main:app --host 0.0.0.0 --port 8000 &
 BACKEND_PID=$!
 cd ..
 
@@ -73,10 +87,10 @@ fi
 
 echo "✅ Backend server started successfully"
 
-# Start frontend server
+# Start frontend server on default port 3000
 echo "🌐 Starting frontend server on port 3000..."
 cd frontend
-npx serve -s build -l 3000 &
+PORT=3000 npx serve -s build -l 3000 &
 FRONTEND_PID=$!
 cd ..
 
