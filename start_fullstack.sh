@@ -71,6 +71,11 @@ echo "✅ Backend server started successfully"
 
 # Start frontend server
 echo "🌐 Starting frontend server on port 3000..."
+
+# Load NVM (so npx/node are available)
+export NVM_DIR="/home/ib/.nvm"
+[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+
 cd frontend
 npx serve -s build -l 3000 &
 FRONTEND_PID=$!
