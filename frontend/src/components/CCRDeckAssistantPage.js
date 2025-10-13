@@ -40,15 +40,21 @@ const CCRDeckAssistantPage = () => {
 
   const loadTemplates = async () => {
     try {
+      console.log('🔄 Loading templates from:', `${config.API_URL}/templates`);
       setIsLoadingTemplates(true);
       const response = await fetch(`${config.API_URL}/templates`);
+      console.log('📡 Template response status:', response.status);
+      
       if (response.ok) {
         const data = await response.json();
+        console.log('✅ Templates loaded:', data);
         setTemplates(data.templates || []);
         setSelectedTemplate(data.selected || 'SMBC.pptx');
+      } else {
+        console.error('❌ Template loading failed:', response.status, response.statusText);
       }
     } catch (error) {
-      console.error('Failed to load templates:', error);
+      console.error('💥 Failed to load templates:', error);
     } finally {
       setIsLoadingTemplates(false);
     }
@@ -438,11 +444,19 @@ const CCRDeckAssistantPage = () => {
                 <h3>📄 Select PowerPoint Template</h3>
                 <p className="template-description">Choose a template for your report. Click on a template to see preview, then download.</p>
                 
+                {/* Debug Section */}
+                <div style={{background: '#fff3cd', padding: '10px', marginBottom: '10px', borderRadius: '4px'}}>
+                  <strong>Debug Info:</strong> Templates: {templates.length}, Loading: {isLoadingTemplates.toString()}, Selected: {selectedTemplate}
+                  <button onClick={loadTemplates} style={{marginLeft: '10px', padding: '4px 8px'}}>Reload Templates</button>
+                </div>
+                
                 {isLoadingTemplates ? (
                   <div className="loading-templates">Loading templates...</div>
+                ) : templates.length === 0 ? (
+                  <div className="no-templates">No templates available. Debug: {JSON.stringify({templatesLength: templates.length, isLoading: isLoadingTemplates})}</div>
                 ) : (
                   <div className="template-cards-grid">
-                    {templates.map((template) => (
+                    {console.log('🎨 Rendering templates:', templates) || templates.map((template) => (
                       <div 
                         key={template.filename}
                         className={`template-card-large ${selectedTemplate === template.filename ? 'selected' : ''} ${!template.active ? 'preview-only' : ''}`}
