@@ -1,54 +1,52 @@
 #!/bin/bash
 
-# SMBC Counterparty Risk Assistant - Installation Script
-echo "🔧 Installing SMBC Counterparty Risk Assistant..."
+# SMBC Risk Management Suite Installation Script
 
-# Check prerequisites
-echo "📋 Checking prerequisites..."
+set -e  # Exit on any error
 
+echo "🚀 Installing SMBC Risk Management Suite..."
+
+# Check if Python is installed
 if ! command -v python3 &> /dev/null; then
-    echo "❌ Python 3 is required but not installed."
-    echo "Please install Python 3.8+ from https://python.org"
+    echo "❌ Python 3 is required but not installed. Please install Python 3.8+"
     exit 1
 fi
 
+# Check if Node.js is installed
 if ! command -v node &> /dev/null; then
-    echo "❌ Node.js is required but not installed."
-    echo "Please install Node.js 16+ from https://nodejs.org"
+    echo "❌ Node.js is required but not installed. Please install Node.js 16+"
     exit 1
 fi
-
-if ! command -v pip &> /dev/null; then
-    echo "❌ pip is required but not installed."
-    echo "Please install pip for Python package management"
-    exit 1
-fi
-
-echo "✅ Prerequisites check passed"
 
 # Install backend dependencies
 echo "📦 Installing backend dependencies..."
-pip install -r backend/requirements.txt
+cd backend
 
-if [ $? -ne 0 ]; then
-    echo "❌ Failed to install backend dependencies"
-    exit 1
+# Create virtual environment if it doesn't exist
+if [ ! -d "venv" ]; then
+    echo "Creating Python virtual environment..."
+    python3 -m venv venv
 fi
+
+# Activate virtual environment and install dependencies
+source venv/bin/activate
+pip install --upgrade pip
+pip install -r requirements.txt
+cd ..
 
 # Install frontend dependencies
 echo "📦 Installing frontend dependencies..."
 cd frontend
 npm install --legacy-peer-deps
+npm audit fix --force || true
 
-if [ $? -ne 0 ]; then
-    echo "❌ Failed to install frontend dependencies"
-    exit 1
-fi
-
-# Fix vulnerabilities
-npm audit fix --force
-
+# Build frontend for production
+echo "🔨 Building frontend..."
+npm run build
 cd ..
+
+# Make scripts executable
+chmod +x *.sh
 
 # Create .env file if it doesn't exist
 if [ ! -f .env ]; then
@@ -68,22 +66,15 @@ MYSQL_DATABASE=your_database_name
 ROW_LIMIT=500
 ALLOWED_SCHEMAS=
 ALLOWED_TABLES=
-
-# Admin Credentials (for demo)
-ADMIN_USERNAME=admin
-ADMIN_PASSWORD=admin123
 EOF
     echo "✅ Created .env file - Please update with your actual configuration"
-else
-    echo "✅ .env file already exists"
 fi
 
+echo "✅ Installation complete!"
 echo ""
-echo "🎉 Installation completed successfully!"
-echo ""
-echo "📝 Next steps:"
+echo "📋 Next steps:"
 echo "1. Update .env file with your OpenAI API key and database credentials"
-echo "2. Ensure your MySQL database is running and accessible"
-echo "3. Run: ./start_fullstack.sh"
+echo "2. Run './start_fullstack.sh' to start the application"
+echo "3. Access the app at http://localhost:3000"
 echo ""
-echo "📚 For detailed setup instructions, see README.md"
+echo "📖 For detailed setup instructions, see README.md"
