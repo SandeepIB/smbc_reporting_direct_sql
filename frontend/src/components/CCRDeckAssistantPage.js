@@ -14,7 +14,7 @@ const CCRDeckAssistantPage = () => {
   const [editedResults, setEditedResults] = useState(null);
   const [zoomedImage, setZoomedImage] = useState(null);
   const [templates, setTemplates] = useState([]);
-  const [selectedTemplate, setSelectedTemplate] = useState('SMBC.pptx');
+  const [selectedTemplate, setSelectedTemplate] = useState(null);
   const [isLoadingTemplates, setIsLoadingTemplates] = useState(false);
   const [showTemplateModal, setShowTemplateModal] = useState(false);
 
@@ -40,21 +40,16 @@ const CCRDeckAssistantPage = () => {
 
   const loadTemplates = async () => {
     try {
-      console.log('🔄 Loading templates from:', `${config.API_URL}/templates`);
       setIsLoadingTemplates(true);
       const response = await fetch(`${config.API_URL}/templates`);
-      console.log('📡 Template response status:', response.status);
       
       if (response.ok) {
         const data = await response.json();
-        console.log('✅ Templates loaded:', data);
         setTemplates(data.templates || []);
         setSelectedTemplate(data.selected || 'SMBC.pptx');
-      } else {
-        console.error('❌ Template loading failed:', response.status, response.statusText);
       }
     } catch (error) {
-      console.error('💥 Failed to load templates:', error);
+      console.error('Failed to load templates:', error);
     } finally {
       setIsLoadingTemplates(false);
     }
@@ -216,11 +211,18 @@ const CCRDeckAssistantPage = () => {
     }
   };
 
-  const handleDownload = () => {
-    // Scroll to template selection section
-    const templateSection = document.querySelector('.template-selection-section');
-    if (templateSection) {
-      templateSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  const handleDownload = async () => {
+    try {
+      const response = await fetch(`${config.API_URL}/download-report`);
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `SMBC_Report_${new Date().toISOString().slice(0,10)}.pptx`;
+      a.click();
+    } catch (error) {
+      console.error('Download failed:', error);
+      alert('Download failed. Please try again.');
     }
   };
 
@@ -307,6 +309,97 @@ const CCRDeckAssistantPage = () => {
           <div className="workflow-step">
             <div className="step-header">
               <div className="step-number">1</div>
+              <h2>Select Report Template</h2>
+            </div>
+            <div className="step-content">
+              <div className="template-selection-header">
+                <p className="template-description">Choose your preferred PowerPoint template</p>
+                {selectedTemplate && (
+                  <div className="selection-status">
+                    <span className="selected-indicator">✓</span>
+                    <span>Template Selected: <strong>{templates.find(t => t.filename === selectedTemplate)?.name}</strong></span>
+                  </div>
+                )}
+              </div>
+              
+              {isLoadingTemplates ? (
+                <div className="loading-templates">
+                  <div className="loading-spinner"></div>
+                  <span>Loading templates...</span>
+                </div>
+              ) : templates.length === 0 ? (
+                <div className="no-templates">
+                  <div className="empty-state">
+                    📄
+                    <p>No templates available</p>
+                  </div>
+                </div>
+              ) : (
+                <div className="advanced-template-grid">
+                  {templates.map((template) => (
+                    <div 
+                      key={template.filename}
+                      className={`advanced-template-card ${
+                        selectedTemplate === template.filename ? 'selected' : ''
+                      } ${
+                        !template.active ? 'disabled' : 'selectable'
+                      }`}
+                      onClick={() => handleTemplateSelect(template.filename)}
+                    >
+                      <div className="template-card-header">
+                        {selectedTemplate === template.filename && (
+                          <div className="selected-checkmark">✓</div>
+                        )}
+                      </div>
+                      
+                      <div className="template-preview-container">
+                        {template.preview ? (
+                          <img 
+                            src={template.preview} 
+                            alt={`${template.name} preview`}
+                            className="template-preview-image"
+                          />
+                        ) : (
+                          <div className="template-placeholder">
+                            <div className="placeholder-slide">
+                              <div className="placeholder-header"></div>
+                              <div className="placeholder-content">
+                                <div className="placeholder-line"></div>
+                                <div className="placeholder-line short"></div>
+                                <div className="placeholder-chart">📊</div>
+                              </div>
+                            </div>
+                          </div>
+                        )}
+                        
+                        <div className="template-overlay">
+                          <button className="select-overlay-btn">
+                            {selectedTemplate === template.filename ? 'Selected' : 'Select'}
+                          </button>
+                        </div>
+                      </div>
+                      
+                      <div className="template-details">
+                        <h4 className="template-title">{template.name}</h4>
+                        <p className="template-desc">{template.description}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+              
+              {!selectedTemplate && templates.length > 0 && (
+                <div className="selection-prompt">
+                  <div className="prompt-icon">⬆️</div>
+                  <p>Please select a template to continue</p>
+                </div>
+              )}
+            </div>
+          </div>
+
+          <div className="workflow-step">
+            <div className="step-header">
+              <div className="step-number">2</div>
               <h2>Upload Chart Images</h2>
             </div>
             <div className="step-content">
@@ -349,7 +442,7 @@ const CCRDeckAssistantPage = () => {
 
           <div className="workflow-step">
             <div className="step-header">
-              <div className="step-number">2</div>
+              <div className="step-number">3</div>
               <h2>Analysis Settings</h2>
             </div>
             <div className="step-content">
@@ -369,7 +462,7 @@ const CCRDeckAssistantPage = () => {
 
           <div className="workflow-step">
             <div className="step-header">
-              <div className="step-number">3</div>
+              <div className="step-number">4</div>
               <h2>Generate Analysis</h2>
             </div>
             <div className="step-content">
@@ -439,79 +532,7 @@ const CCRDeckAssistantPage = () => {
                 </div>
               </div>
               
-              {/* Template Selection Section */}
-              <div className="template-selection-section">
-                <h3>📄 Select PowerPoint Template</h3>
-                <p className="template-description">Choose a template for your report. Click on a template to see preview, then download.</p>
-                
-                {/* Debug Section */}
-                <div style={{background: '#fff3cd', padding: '10px', marginBottom: '10px', borderRadius: '4px'}}>
-                  <strong>Debug Info:</strong> Templates: {templates.length}, Loading: {isLoadingTemplates.toString()}, Selected: {selectedTemplate}
-                  <button onClick={loadTemplates} style={{marginLeft: '10px', padding: '4px 8px'}}>Reload Templates</button>
-                </div>
-                
-                {isLoadingTemplates ? (
-                  <div className="loading-templates">Loading templates...</div>
-                ) : templates.length === 0 ? (
-                  <div className="no-templates">No templates available. Debug: {JSON.stringify({templatesLength: templates.length, isLoading: isLoadingTemplates})}</div>
-                ) : (
-                  <div className="template-cards-grid">
-                    {console.log('🎨 Rendering templates:', templates) || templates.map((template) => (
-                      <div 
-                        key={template.filename}
-                        className={`template-card-large ${selectedTemplate === template.filename ? 'selected' : ''} ${!template.active ? 'preview-only' : ''}`}
-                        onClick={() => template.active && handleTemplateSelect(template.filename)}
-                      >
-                        <div className="template-preview-section">
-                          <div className="template-slide-mockup">
-                            <div className="slide-header">
-                              <div className="slide-title-bar"></div>
-                            </div>
-                            <div className="slide-body">
-                              <div className="slide-content-line"></div>
-                              <div className="slide-content-line short"></div>
-                              <div className="slide-chart-area">
-                                <div className="chart-placeholder">📊</div>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                        
-                        <div className="template-info-section">
-                          <h4>{template.name}</h4>
-                          <p>{template.description}</p>
-                          
-                          <div className="template-status">
-                            {!template.active && <span className="preview-badge">Preview Only</span>}
-                            {selectedTemplate === template.filename && template.active && <span className="selected-badge">✓ Selected</span>}
-                          </div>
-                          
-                          {template.active && (
-                            <button 
-                              className={`select-template-btn ${selectedTemplate === template.filename ? 'selected' : ''}`}
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleTemplateSelect(template.filename);
-                              }}
-                            >
-                              {selectedTemplate === template.filename ? '✓ Selected' : 'Select Template'}
-                            </button>
-                          )}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-                
-                {selectedTemplate && (
-                  <div className="selected-template-info">
-                    <p>Selected: <strong>{templates.find(t => t.filename === selectedTemplate)?.name}</strong></p>
-                    <button onClick={handleConfirmDownload} className="download-selected-btn">
-                      📥 Download Report with Selected Template
-                    </button>
-                  </div>
-                )}
-              </div>
+
               
               <div className="results-grid">
                 <div className="result-card executive">

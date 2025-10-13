@@ -31,9 +31,9 @@ if [ ! -d "backend/venv" ]; then
     exit 1
 fi
 
-# Check if frontend build exists
-if [ ! -d "frontend/build" ]; then
-    echo "❌ Frontend build not found. Please run './install.sh' first."
+# Check if frontend dependencies exist
+if [ ! -d "frontend/node_modules" ]; then
+    echo "❌ Frontend dependencies not found. Please run './install.sh' first."
     exit 1
 fi
 
@@ -69,10 +69,10 @@ fi
 
 echo "✅ Backend server started successfully"
 
-# Start frontend server
-echo "🌐 Starting frontend server on port 3000..."
+# Start frontend development server
+echo "🌐 Starting frontend development server on port 3000..."
 cd frontend
-npx serve -s build -l 3000 &
+npm start &
 FRONTEND_PID=$!
 cd ..
 
@@ -81,9 +81,9 @@ echo "⏳ Waiting for frontend to initialize..."
 sleep 2
 
 echo ""
-echo "🎉 SMBC Risk Management Suite is now running!"
+echo "🎉 SMBC Risk Management Suite is now running in DEVELOPMENT mode!"
 echo ""
-echo "📱 Web Interface: http://localhost:3000"
+echo "📱 Web Interface: http://localhost:3000 (Development Server - Live Reload)"
 echo "🔧 API Server: http://localhost:8000"
 echo "⚙️  Admin Panel: http://localhost:3000 (click gear icon)"
 echo ""

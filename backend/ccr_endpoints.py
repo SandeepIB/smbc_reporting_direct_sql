@@ -59,28 +59,41 @@ def get_available_templates() -> List[Dict]:
                 "active": False
             })
             
+            # Generate preview
+            preview = generate_template_preview(template_path)
+            
             templates.append({
                 "filename": filename,
                 "name": info["name"],
                 "description": info["description"],
                 "active": info["active"],
-                "path": template_path
+                "path": template_path,
+                "preview": preview
             })
     
     return templates
 
 def generate_template_preview(template_path: str) -> str:
-    """Generate base64 preview of first slide"""
+    """Get thumbnail image from templates folder"""
     try:
-        prs = Presentation(template_path)
-        if not prs.slides:
-            return None
-            
-        # For now, return a placeholder - actual slide-to-image conversion
-        # would require additional libraries like python-pptx-interface
-        return "preview_placeholder"
+        # Get template filename without extension
+        template_name = os.path.splitext(os.path.basename(template_path))[0]
+        
+        # Look for thumbnail image in templates folder
+        templates_dir = os.path.dirname(template_path)
+        
+        # Try different image extensions
+        for ext in ['.png', '.jpg', '.jpeg']:
+            thumb_path = os.path.join(templates_dir, f"{template_name}{ext}")
+            if os.path.exists(thumb_path):
+                with open(thumb_path, 'rb') as f:
+                    img_data = base64.b64encode(f.read()).decode('utf-8')
+                return f"data:image/{ext[1:]};base64,{img_data}"
+        
+        return None
+        
     except Exception as e:
-        print(f"Error generating preview for {template_path}: {e}")
+        print(f"Error loading thumbnail for {template_path}: {e}")
         return None
 
 # Image cropping functions
