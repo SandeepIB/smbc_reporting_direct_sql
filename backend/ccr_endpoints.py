@@ -1,6 +1,6 @@
 from fastapi import HTTPException, UploadFile
 from fastapi.responses import FileResponse
-from typing import List
+from typing import List, Dict
 import os
 import shutil
 import tempfile
@@ -14,15 +14,74 @@ from pptx.enum.shapes import MSO_AUTO_SHAPE_TYPE
 from pptx.dml.color import RGBColor
 from pptx.enum.text import PP_ALIGN
 import re
+import io
 
 # Global variables
 analysis_results = {}
 temp_dir = None
 crop_config = {"rows": 2, "cols": 3, "enabled": True}
+selected_template = "SMBC.pptx"  # Default template
 
 # OpenAI client
 api_key = os.getenv("OPENAI_API_KEY")
 client = OpenAI(api_key=api_key) if api_key else None
+
+# Template management functions
+def get_available_templates() -> List[Dict]:
+    """Get list of available PPT templates with metadata"""
+    templates_dir = os.path.join(os.path.dirname(__file__), 'templates')
+    templates = []
+    
+    template_info = {
+        "SMBC.pptx": {
+            "name": "SMBC Executive Summary",
+            "description": "Official SMBC template for executive reporting",
+            "active": True
+        },
+        "CCR Executive Summary.pptx": {
+            "name": "CCR Executive Summary", 
+            "description": "Sample template for CCR executive reporting",
+            "active": False
+        },
+        "Individual CCR Summary.pptx": {
+            "name": "Individual CCR Summary",
+            "description": "InfoBeans demo template for individual CCR analysis", 
+            "active": False
+        }
+    }
+    
+    for filename in os.listdir(templates_dir):
+        if filename.endswith('.pptx'):
+            template_path = os.path.join(templates_dir, filename)
+            info = template_info.get(filename, {
+                "name": filename.replace('.pptx', ''),
+                "description": "Custom template",
+                "active": False
+            })
+            
+            templates.append({
+                "filename": filename,
+                "name": info["name"],
+                "description": info["description"],
+                "active": info["active"],
+                "path": template_path
+            })
+    
+    return templates
+
+def generate_template_preview(template_path: str) -> str:
+    """Generate base64 preview of first slide"""
+    try:
+        prs = Presentation(template_path)
+        if not prs.slides:
+            return None
+            
+        # For now, return a placeholder - actual slide-to-image conversion
+        # would require additional libraries like python-pptx-interface
+        return "preview_placeholder"
+    except Exception as e:
+        print(f"Error generating preview for {template_path}: {e}")
+        return None
 
 # Image cropping functions
 def crop_image_to_blocks(image_path, rows=2, cols=3, output_dir=None):
@@ -412,8 +471,14 @@ def add_consolidated_slide(prs, trend_texts, recommendations, consolidated_title
     if position is not None:
         insert_slide_at(prs, slide, position)
 
-def generate_ppt_report(summary, graph_insights, output_path):
-    template_path = "/var/www/html/SMBC/smbc_reporting_direct_sql/backend/SMBC.pptx"
+def generate_ppt_report(summary, graph_insights, output_path, template_name=None):
+    if template_name is None:
+        template_name = selected_template
+    
+    template_path = os.path.join(os.path.dirname(__file__), 'templates', template_name)
+    if not os.path.exists(template_path):
+        template_path = os.path.join(os.path.dirname(__file__), 'templates', 'SMBC.pptx')
+    
     prs = Presentation(template_path)
 
     first_slide = prs.slides[0]
@@ -452,6 +517,31 @@ def generate_ppt_report(summary, graph_insights, output_path):
     prs.save(output_path)
 
 # API endpoint functions
+async def get_templates():
+    """Get available templates with preview info"""
+    try:
+        templates = get_available_templates()
+        return {"templates": templates, "selected": selected_template}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to get templates: {str(e)}")
+
+async def select_template(template_data: dict):
+    """Select a template for report generation"""
+    global selected_template
+    
+    template_name = template_data.get("template")
+    if not template_name:
+        raise HTTPException(status_code=400, detail="Template name required")
+    
+    templates_dir = os.path.join(os.path.dirname(__file__), 'templates')
+    template_path = os.path.join(templates_dir, template_name)
+    
+    if not os.path.exists(template_path):
+        raise HTTPException(status_code=404, detail="Template not found")
+    
+    selected_template = template_name
+    return {"message": f"Template selected: {template_name}", "selected": selected_template}
+
 async def upload_images(files: List[UploadFile]):
     global temp_dir
     
@@ -569,7 +659,8 @@ async def download_report(request=None):
             generate_ppt_report(
                 analysis_results["executive_summary"],
                 graph_insights_full,
-                report_path
+                report_path,
+                selected_template
             )
         else:
             raise Exception("No valid images found for report generation")

@@ -13,14 +13,20 @@ const CCRDeckAssistantPage = () => {
   const [isEditMode, setIsEditMode] = useState(false);
   const [editedResults, setEditedResults] = useState(null);
   const [zoomedImage, setZoomedImage] = useState(null);
+  const [templates, setTemplates] = useState([]);
+  const [selectedTemplate, setSelectedTemplate] = useState('SMBC.pptx');
+  const [isLoadingTemplates, setIsLoadingTemplates] = useState(false);
 
-  // Fix scrolling issue
+  // Fix scrolling issue and load templates
   useEffect(() => {
     // Enable scrolling on mount
     document.body.style.overflow = 'auto';
     document.body.style.height = 'auto';
     document.documentElement.style.overflow = 'auto';
     document.documentElement.style.height = 'auto';
+    
+    // Load available templates
+    loadTemplates();
     
     // Cleanup on unmount
     return () => {
@@ -30,6 +36,38 @@ const CCRDeckAssistantPage = () => {
       document.documentElement.style.height = '';
     };
   }, []);
+
+  const loadTemplates = async () => {
+    try {
+      setIsLoadingTemplates(true);
+      const response = await fetch(`${config.API_URL}/templates`);
+      if (response.ok) {
+        const data = await response.json();
+        setTemplates(data.templates || []);
+        setSelectedTemplate(data.selected || 'SMBC.pptx');
+      }
+    } catch (error) {
+      console.error('Failed to load templates:', error);
+    } finally {
+      setIsLoadingTemplates(false);
+    }
+  };
+
+  const handleTemplateSelect = async (templateFilename) => {
+    try {
+      const response = await fetch(`${config.API_URL}/select-template`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ template: templateFilename })
+      });
+      
+      if (response.ok) {
+        setSelectedTemplate(templateFilename);
+      }
+    } catch (error) {
+      console.error('Failed to select template:', error);
+    }
+  };
 
   const handleReset = () => {
     setFiles([]);
@@ -296,6 +334,40 @@ const CCRDeckAssistantPage = () => {
           <div className="workflow-step">
             <div className="step-header">
               <div className="step-number">2</div>
+              <h2>Select Report Template</h2>
+            </div>
+            <div className="step-content">
+              {isLoadingTemplates ? (
+                <div className="loading-templates">Loading templates...</div>
+              ) : (
+                <div className="template-selection">
+                  {templates.map((template) => (
+                    <div 
+                      key={template.filename}
+                      className={`template-card ${selectedTemplate === template.filename ? 'selected' : ''} ${!template.active ? 'preview-only' : ''}`}
+                      onClick={() => template.active && handleTemplateSelect(template.filename)}
+                    >
+                      <div className="template-preview">
+                        <div className="template-thumbnail">
+                          📄
+                        </div>
+                      </div>
+                      <div className="template-info">
+                        <h4>{template.name}</h4>
+                        <p>{template.description}</p>
+                        {!template.active && <span className="preview-badge">Preview Only</span>}
+                        {selectedTemplate === template.filename && <span className="selected-badge">✓ Selected</span>}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+
+          <div className="workflow-step">
+            <div className="step-header">
+              <div className="step-number">3</div>
               <h2>Analysis Settings</h2>
             </div>
             <div className="step-content">
@@ -315,7 +387,7 @@ const CCRDeckAssistantPage = () => {
 
           <div className="workflow-step">
             <div className="step-header">
-              <div className="step-number">3</div>
+              <div className="step-number">4</div>
               <h2>Generate Analysis</h2>
             </div>
             <div className="step-content">

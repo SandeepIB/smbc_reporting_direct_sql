@@ -23,7 +23,7 @@ from src.services.schema_cache import SchemaCache
 from src.services.database import DatabaseManager
 from src.services.ai_service import AIService
 from feedback_service import FeedbackService
-from ccr_endpoints import upload_images, configure_cropping, analyze, download_report, get_image
+from ccr_endpoints import upload_images, configure_cropping, analyze, download_report, get_image, get_templates, select_template
 
 
 from dotenv import load_dotenv
@@ -838,6 +838,14 @@ async def api_health_check():
     return await health_check()
 
 # CCR API Routes
+@app.get("/ccr/templates")
+async def ccr_get_templates_endpoint():
+    return await get_templates()
+
+@app.post("/ccr/select-template")
+async def ccr_select_template_endpoint(template_data: dict):
+    return await select_template(template_data)
+
 @app.post("/ccr/upload-images")
 async def ccr_upload_images_endpoint(files: List[UploadFile] = File(...)):
     return await upload_images(files)
@@ -855,6 +863,14 @@ async def ccr_download_report_endpoint():
     return await download_report()
 
 # Legacy CCR endpoints (for backward compatibility)
+@app.get("/templates")
+async def get_templates_endpoint():
+    return await get_templates()
+
+@app.post("/select-template")
+async def select_template_endpoint(template_data: dict):
+    return await select_template(template_data)
+
 @app.post("/upload-images")
 async def upload_images_endpoint(files: List[UploadFile] = File(...)):
     return await upload_images(files)
