@@ -95,90 +95,79 @@ REACT_APP_CCR_API_URL=http://localhost:8001
 
 ## Quick Start
 
-### Full-Stack Application (Recommended)
+### 1. Install Dependencies
 ```bash
-# Start all services (Main API + CCR API + Frontend)
-./start_fullstack.sh
-
-# If frontend connection issues occur:
-./debug_frontend.sh
-
-# Or start frontend in production mode:
-./start_frontend_production.sh
+# Run the installation script
+./install.sh
 ```
 
-Then open http://localhost:3000 in your browser.
-- Main chat interface: http://localhost:3000/chat
-- CCR Deck Assistant: http://localhost:3000/ccr
-- Admin dashboard: http://localhost:3000/admin
+### 2. Configure Environment
+Update `.env` file with your settings:
+```env
+OPENAI_API_KEY=your_openai_api_key
+MYSQL_HOST=localhost
+MYSQL_USER=your_username
+MYSQL_PASSWORD=your_password
+MYSQL_DATABASE=your_database
+```
+
+### 3. Start Application
+```bash
+# Start the full application
+./start_fullstack.sh
+```
+
+### 4. Access Application
+- **Web Interface**: http://localhost:3000
+- **API Server**: http://localhost:8000
+- **Admin Panel**: http://localhost:3000 (click ⚙️ icon)
+
+**Admin Credentials**: admin / admin123
+
+## Alternative Start Methods
 
 ### CLI Only
 ```bash
-# Interactive mode
 python cli_app.py
-
-# Single question
-python cli_app.py "How many users are in the system?"
-
-# Test connection
-python cli_app.py test-connection
 ```
 
-### Backend API Only
+### Backend Only
 ```bash
-# Start FastAPI server
 ./run_backend.sh
 ```
 
-API will be available at http://localhost:8000
-
 ### Frontend Only
 ```bash
-# Option 1: Development server (recommended for development)
 ./run_frontend.sh
-
-# Option 2: Production build and serve (recommended for production)
-cd frontend
-npm run build
-npx serve -s build -l 3000
 ```
-
-Web interface will be available at http://localhost:3000
 
 ## File Structure
 
 ```
-├── backend/                    # FastAPI backend (port 8000)
+├── backend/                    # FastAPI backend
 │   ├── main.py                # API server
 │   ├── chatbot_service.py     # Core chatbot logic
+│   ├── feedback_service.py    # Feedback management
 │   └── requirements.txt       # Backend dependencies
 ├── frontend/                   # React frontend
 │   ├── src/
 │   │   ├── components/        # React components
-│   │   │   ├── LandingPage.js # Professional landing page
-│   │   │   ├── ChatInterface.js # Main chat interface
-│   │   │   ├── CCRDeckAssistantPage.js # CCR analysis interface
-│   │   │   ├── CommonHeader.js # Shared header component
-│   │   │   └── AdminInterface.js # Admin dashboard
+│   │   │   ├── LandingPage.js # Landing page
+│   │   │   ├── ChatInterface.js # Chat interface
+│   │   │   ├── AdminPage.js   # Admin dashboard
+│   │   │   └── FeedbackSection.js # Feedback system
 │   │   └── services/          # API services
 │   └── package.json           # Frontend dependencies
-├── smbc_reporting_tool/        # CCR Deck Assistant (port 8001)
-│   ├── backend/
-│   │   ├── main.py            # CCR API server
-│   │   ├── analysis.py        # OpenAI image analysis
-│   │   ├── report_generator.py # PowerPoint generation
-│   │   └── image_cropper.py   # Image processing
-│   └── templates/             # PowerPoint templates
-├── src/                       # Core modules (shared)
+├── src/                       # Core modules
 │   ├── core/                  # Configuration
 │   ├── services/              # Database, AI, Schema services
 │   └── utils/                 # Utilities
 ├── cli_app.py                 # CLI application
-├── app.py                     # Legacy CLI (still works)
-├── start_fullstack.sh         # Start both backend & frontend
+├── install.sh                 # Installation script
+├── start_fullstack.sh         # Start application
 ├── run_backend.sh             # Start backend only
 ├── run_frontend.sh            # Start frontend only
-└── SETUP.md                   # Detailed setup guide
+└── README.md                  # This file
 ```
 
 ## Configuration Options

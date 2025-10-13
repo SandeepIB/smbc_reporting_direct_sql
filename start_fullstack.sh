@@ -1,143 +1,101 @@
 #!/bin/bash
 
-echo "🚀 Starting Full-Stack Prompts to Insights Application"
-echo "========================================================="
+# SMBC Counterparty Risk Assistant - Full Stack Startup Script
+echo "🚀 Starting SMBC Counterparty Risk Assistant..."
 
-# Check if .env exists
-if [ ! -f ".env" ]; then
-    echo "❌ Error: .env file not found!"
-    echo "Please create .env file with your database and OpenAI credentials."
-    echo "See SETUP.md for details."
+# Check if Python is installed
+if ! command -v python3 &> /dev/null; then
+    echo "❌ Python 3 is not installed. Please install Python 3.8+ first."
     exit 1
 fi
 
-# Function to kill processes on port
-kill_port() {
-    local port=$1
-    local pids=$(lsof -ti :$port)
-    if [ ! -z "$pids" ]; then
-        echo "🔄 Killing existing processes on port $port..."
-        echo $pids | xargs kill -9 2>/dev/null
-        sleep 2
-    fi
-}
-
-# Function to find available port
-find_available_port() {
-    local start_port=$1
-    local port=$start_port
-    while lsof -Pi :$port -sTCP:LISTEN -t >/dev/null 2>&1; do
-        port=$((port + 1))
-    done
-    echo $port
-}
-
-# Kill existing processes and find available ports
-echo "🔄 Checking and cleaning up ports..."
-kill_port 8000
-kill_port 3000
-
-# Find available ports
-BACKEND_PORT=$(find_available_port 8000)
-FRONTEND_PORT=$(find_available_port 3000)
-
-echo "✅ Using Backend Port: $BACKEND_PORT (includes CCR)"
-echo "✅ Using Frontend Port: $FRONTEND_PORT"
-
-# Start backend in background with custom port
-echo "🔧 Starting backend API server on port $BACKEND_PORT..."
-cd backend
-
-# Check if virtual environment exists, if not create it
-if [ ! -d "venv" ]; then
-    echo "📦 Creating virtual environment..."
-    python3 -m venv venv
-fi
-
-# Activate virtual environment and install dependencies
-echo "📦 Installing dependencies..."
-source venv/bin/activate
-pip install -r requirements.txt
-
-# Install additional dependencies for CCR functionality
-echo "📦 Installing CCR dependencies..."
-pip install python-multipart pillow python-pptx > /dev/null 2>&1
-
-# Start the backend server
-python -m uvicorn main:app --host 0.0.0.0 --port $BACKEND_PORT --reload &
-BACKEND_PID=$!
-cd ..
-
-# Wait a moment for backend to start
-sleep 3
-
-# Check if backend started successfully
-if curl -s http://localhost:$BACKEND_PORT/health > /dev/null; then
-    echo "✅ Backend API is running on http://localhost:$BACKEND_PORT"
-else
-    echo "❌ Backend failed to start"
-    kill $BACKEND_PID 2>/dev/null
+# Check if Node.js is installed
+if ! command -v node &> /dev/null; then
+    echo "❌ Node.js is not installed. Please install Node.js 16+ first."
     exit 1
 fi
 
-# CCR functionality is now integrated into main backend
-echo "✅ CCR functionality integrated into main backend"
+# Check if .env file exists
+if [ ! -f .env ]; then
+    echo "❌ .env file not found. Please create .env file with your configuration."
+    echo "📝 Copy .env.example to .env and update with your settings."
+    exit 1
+fi
 
-# Start frontend with custom port and backend URLs
-echo "🎨 Starting frontend React app on port $FRONTEND_PORT..."
+# Install backend dependencies if needed
+echo "📦 Checking backend dependencies..."
+if [ ! -d "backend/__pycache__" ] || [ ! -f "backend/requirements.txt" ]; then
+    echo "Installing Python dependencies..."
+    pip install -r backend/requirements.txt
+fi
+
+# Install frontend dependencies if needed
+echo "📦 Checking frontend dependencies..."
 cd frontend
-
-# Check if build exists, if not build it
-if [ ! -d "build" ]; then
-    echo "🔨 Building React application..."
-    npm run build
+if [ ! -d "node_modules" ]; then
+    echo "Installing Node.js dependencies..."
+    npm install --legacy-peer-deps
+    npm audit fix --force
 fi
 
-# Set environment variables for API URLs
-export REACT_APP_MAIN_API_URL=http://localhost:$BACKEND_PORT
-export REACT_APP_CCR_API_URL=http://localhost:$BACKEND_PORT
+# Build frontend for production
+echo "🔨 Building frontend..."
+npm run build
 
-# Start frontend (try production build first, fallback to dev)
-if [ -d "build" ]; then
-    echo "🚀 Starting production frontend server..."
-    npx serve -s build -l $FRONTEND_PORT &
-    FRONTEND_PID=$!
-else
-    echo "🚀 Starting development frontend server..."
-    PORT=$FRONTEND_PORT npm start &
-    FRONTEND_PID=$!
-fi
 cd ..
 
-echo ""
-echo "🎉 Application started successfully!"
-echo "📱 Web Interface: http://localhost:$FRONTEND_PORT"
-echo "🔌 Unified API: http://localhost:$BACKEND_PORT (includes CCR)"
-echo "📖 API Docs: http://localhost:$BACKEND_PORT/docs"
-echo ""
-echo "🌍 Available Pages:"
-echo "   • Landing: http://localhost:$FRONTEND_PORT"
-echo "   • Chat: http://localhost:$FRONTEND_PORT/chat"
-echo "   • CCR Assistant: http://localhost:$FRONTEND_PORT/ccr"
-echo "   • Admin: http://localhost:$FRONTEND_PORT/admin"
-echo ""
-echo "💡 You can also use the CLI:"
-echo "   python cli_app.py"
-echo ""
-echo "Press Ctrl+C to stop all services"
-
-# Function to cleanup on exit
+# Function to kill processes on exit
 cleanup() {
-    echo ""
-    echo "🛑 Stopping services..."
-    kill $BACKEND_PID 2>/dev/null
-    kill $FRONTEND_PID 2>/dev/null
-    echo "✅ All services stopped"
+    echo "🛑 Shutting down services..."
+    kill $BACKEND_PID $FRONTEND_PID 2>/dev/null
     exit 0
 }
 
-# Set trap to cleanup on script exit
+# Set up signal handlers
 trap cleanup SIGINT SIGTERM
 
-# Wait for user to stop
-wait
+# Start backend server
+echo "🔧 Starting backend server on port 8000..."
+cd backend
+python main.py &
+BACKEND_PID=$!
+cd ..
+
+# Wait for backend to start
+sleep 3
+
+# Check if backend is running
+if ! curl -s http://localhost:8000/health > /dev/null; then
+    echo "❌ Backend failed to start. Check logs above."
+    kill $BACKEND_PID 2>/dev/null
+    exit 1
+fi
+
+echo "✅ Backend server started successfully"
+
+# Start frontend server
+echo "🌐 Starting frontend server on port 3000..."
+cd frontend
+npx serve -s build -l 3000 &
+FRONTEND_PID=$!
+cd ..
+
+# Wait for frontend to start
+sleep 2
+
+echo ""
+echo "🎉 SMBC Counterparty Risk Assistant is now running!"
+echo ""
+echo "📱 Web Interface: http://localhost:3000"
+echo "🔧 API Server: http://localhost:8000"
+echo "⚙️  Admin Panel: http://localhost:3000 (click gear icon)"
+echo ""
+echo "📋 Admin Credentials:"
+echo "   Username: admin"
+echo "   Password: admin123"
+echo ""
+echo "Press Ctrl+C to stop all services"
+echo ""
+
+# Wait for processes
+wait $BACKEND_PID $FRONTEND_PID
