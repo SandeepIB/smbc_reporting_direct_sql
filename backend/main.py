@@ -25,6 +25,7 @@ from src.services.ai_service import AIService
 from feedback_service import FeedbackService
 from ccr_endpoints import upload_images, configure_cropping, analyze, download_report
 
+
 from dotenv import load_dotenv
 load_dotenv()
 
@@ -829,7 +830,31 @@ async def admin_login(request: AdminLoginRequest):
         logger.error(f"Error during admin login: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
 
-# CCR Endpoints
+
+
+# Chat API Routes (default)
+@app.get("/api/health")
+async def api_health_check():
+    return await health_check()
+
+# CCR API Routes
+@app.post("/ccr/upload-images")
+async def ccr_upload_images_endpoint(files: List[UploadFile] = File(...)):
+    return await upload_images(files)
+
+@app.post("/ccr/configure-cropping")
+async def ccr_configure_cropping_endpoint(config: dict):
+    return await configure_cropping(config)
+
+@app.post("/ccr/analyze")
+async def ccr_analyze_endpoint():
+    return await analyze()
+
+@app.get("/ccr/download-report")
+async def ccr_download_report_endpoint():
+    return await download_report()
+
+# Legacy CCR endpoints (for backward compatibility)
 @app.post("/upload-images")
 async def upload_images_endpoint(files: List[UploadFile] = File(...)):
     return await upload_images(files)
@@ -845,15 +870,6 @@ async def analyze_endpoint():
 @app.get("/download-report")
 async def download_report_endpoint():
     return await download_report()
-
-@app.post("/download-report")
-async def download_report_post_endpoint(request: Request):
-    return await download_report(request)
-
-@app.get("/images/{filename}")
-async def get_image_endpoint(filename: str):
-    from ccr_endpoints import get_image
-    return await get_image(filename)
 
 if __name__ == "__main__":
     import uvicorn

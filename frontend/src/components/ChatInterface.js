@@ -36,36 +36,36 @@ const EditQuestionSection = ({ originalQuestion, onEditSubmit, onCancel }) => {
   };
   
   return (
-    <div className="mt-4 p-4 bg-yellow-50 rounded-lg border border-yellow-200">
-      <div className="flex items-center gap-2 mb-3">
-        <svg className="w-5 h-5 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <div className="edit-question-section">
+      <div className="edit-question-header">
+        <svg className="edit-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
         </svg>
-        <h3 className="text-base font-semibold text-yellow-800">Edit Your Question</h3>
+        <h3 className="edit-question-title">Edit Your Question</h3>
       </div>
       
       <textarea
         value={editedQuestion}
         onChange={(e) => setEditedQuestion(e.target.value)}
-        className="w-full p-3 border border-yellow-300 rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-yellow-500"
+        className="edit-question-textarea"
         rows="3"
         placeholder="Edit your question here..."
       />
       
-      <div className="flex gap-3 mt-3">
+      <div className="edit-question-buttons">
         <button
           onClick={handleSubmit}
           disabled={!editedQuestion.trim() || editedQuestion === originalQuestion}
-          className="inline-flex items-center gap-2 px-4 py-2 bg-green-600 text-white text-sm font-medium rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+          className="edit-submit-btn"
         >
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg className="button-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
           </svg>
           Submit Edited Question
         </button>
         <button
           onClick={onCancel}
-          className="inline-flex items-center gap-2 px-4 py-2 bg-gray-500 text-white text-sm font-medium rounded-lg hover:bg-gray-600 transition-colors"
+          className="edit-cancel-btn"
         >
           Cancel
         </button>
@@ -79,101 +79,47 @@ const ConfirmationSection = ({ message, onConfirm, onEditQuestion, isConfirming 
   const interpretation = message.interpretedQuestion;
   
   return (
-    <div className="mt-4 p-5 bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 rounded-xl border border-blue-200 shadow-lg">
-      <div className="flex items-start gap-4 mb-5">
-        <div className="flex-shrink-0 w-10 h-10 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full flex items-center justify-center shadow-md">
-          <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
-          </svg>
-        </div>
-        <div className="flex-1">
-          <h3 className="text-base font-semibold text-gray-800 mb-2">Please confirm your question:</h3>
-          <p className="text-sm text-gray-600 mb-4 leading-relaxed">
-            The question <span className="font-medium text-gray-800 bg-white px-2 py-1 rounded border">"{message.originalQuestion}"</span> can be interpreted as follows:
-          </p>
-          
-          <div className="space-y-3 mb-5">
-            <div className="flex items-start gap-3">
-              <div className="flex-shrink-0 w-6 h-6 bg-green-100 rounded-full flex items-center justify-center">
-                <svg className="w-3 h-3 text-green-600" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M3 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V4zm0 4a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H4a1 1 0 01-1-1V8zm8 0a1 1 0 011-1h4a1 1 0 011 1v2a1 1 0 01-1 1h-4a1 1 0 01-1-1V8z" clipRule="evenodd" />
-                </svg>
-              </div>
-              <div>
-                <p className="text-sm font-medium text-gray-700">Data requested:</p>
-                <p className="text-sm text-gray-600">{interpretation?.data_requested || 'Data analysis'}</p>
-              </div>
-            </div>
-            
-            <div className="flex items-start gap-3">
-              <div className="flex-shrink-0 w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center">
-                <svg className="w-3 h-3 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M3 3a1 1 0 000 2v8a2 2 0 002 2h2.586l-1.293 1.293a1 1 0 101.414 1.414L10 15.414l2.293 2.293a1 1 0 001.414-1.414L12.414 15H15a2 2 0 002-2V5a1 1 0 100-2H3zm11.707 4.707a1 1 0 00-1.414-1.414L10 9.586 8.707 8.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                </svg>
-              </div>
-              <div>
-                <p className="text-sm font-medium text-gray-700">Analysis type:</p>
-                <p className="text-sm text-gray-600">{interpretation?.analysis_type || 'Query analysis'}</p>
-              </div>
-            </div>
-            
-            <div className="flex items-start gap-3">
-              <div className="flex-shrink-0 w-6 h-6 bg-purple-100 rounded-full flex items-center justify-center">
-                <svg className="w-3 h-3 text-purple-600" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
-                </svg>
-              </div>
-              <div>
-                <p className="text-sm font-medium text-gray-700">Context:</p>
-                <p className="text-sm text-gray-600">{interpretation?.context_significance || 'Provides business insights'}</p>
-              </div>
-            </div>
-          </div>
-          
-          {/* Intent Array Section */}
-          {interpretation?.intent_array && interpretation.intent_array.length > 0 && (
-            <div className="mt-4 p-4 bg-gradient-to-r from-indigo-50 to-blue-50 rounded-lg border border-indigo-200">
-              <div className="flex items-center gap-2 mb-3">
-                <div className="flex-shrink-0 w-6 h-6 bg-indigo-100 rounded-full flex items-center justify-center">
-                  <svg className="w-3 h-3 text-indigo-600" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M3 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V4zm0 4a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H4a1 1 0 01-1-1V8zm8 0a1 1 0 011-1h4a1 1 0 011 1v2a1 1 0 01-1 1h-4a1 1 0 01-1-1V8z" clipRule="evenodd" />
-                  </svg>
-                </div>
-                <p className="text-sm font-medium text-gray-700">Intent (Array Form):</p>
-              </div>
-              <div className="bg-gray-900 text-green-400 p-3 rounded-lg text-sm font-mono overflow-x-auto">
-                <pre className="whitespace-pre-wrap">
+    <div className="confirmation-section">
+      <div className="confirmation-title">Please confirm your question:</div>
+      <p>The question <strong>"{message.originalQuestion}"</strong> can be interpreted as follows:</p>
+      
+      <div className="interpretation-details">
+        <h4>Data requested:</h4>
+        <p>{interpretation?.data_requested || 'Data analysis'}</p>
+        
+        <h4>Analysis type:</h4>
+        <p>{interpretation?.analysis_type || 'Query analysis'}</p>
+        
+        <h4>Context:</h4>
+        <p>{interpretation?.context_significance || 'Provides business insights'}</p>
+        
+        {interpretation?.intent_array && interpretation.intent_array.length > 0 && (
+          <div>
+            <h4>Intent (Array Form):</h4>
+            <pre>
 {`[
 ${interpretation.intent_array.map(item => `  "${item}"`).join(',\n')}
 ]`}
-                </pre>
-              </div>
-            </div>
-          )}
-          
-          <p className="text-sm font-medium text-gray-700 mb-4">Do you want me to proceed with this interpretation?</p>
-        </div>
+            </pre>
+          </div>
+        )}
       </div>
       
-      <div className="flex gap-3">
+      <p><strong>Do you want me to proceed with this interpretation?</strong></p>
+      
+      <div className="confirmation-buttons">
         <button
           onClick={() => onConfirm(true)}
           disabled={isConfirming}
-          className="inline-flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-green-600 to-green-700 text-white text-sm font-medium rounded-lg hover:from-green-700 hover:to-green-800 disabled:opacity-50 transition-all duration-200 shadow-md hover:shadow-lg"
+          className="confirm-btn"
         >
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-          </svg>
           {isConfirming ? 'Processing...' : 'Yes, correct'}
         </button>
         <button
           onClick={onEditQuestion}
           disabled={isConfirming}
-          className="inline-flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-gray-600 to-gray-700 text-white text-sm font-medium rounded-lg hover:from-gray-700 hover:to-gray-800 disabled:opacity-50 transition-all duration-200 shadow-md hover:shadow-lg"
+          className="cancel-btn"
         >
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-          </svg>
           No, let me rephrase
         </button>
       </div>
@@ -195,47 +141,47 @@ const RefinementSection = ({ message, onRefine, isRefining }) => {
   };
 
   return (
-    <div className="mt-3 p-3 bg-blue-50 rounded-lg border border-blue-200">
-      <div className="flex items-center gap-2 mb-2">
-        <span className="text-lg">💡</span>
-        <span className="text-sm font-medium text-blue-800">Refine the question?</span>
+    <div className="refinement-section">
+      <div className="refinement-header">
+        <span className="refinement-icon">💡</span>
+        <span className="refinement-title">Refine the question?</span>
       </div>
       
       {!showRefineInput ? (
-        <div className="flex gap-2">
+        <div className="refinement-initial-buttons">
           <button
             onClick={() => setShowRefineInput(true)}
-            className="px-3 py-1 bg-blue-600 text-white text-sm rounded hover:bg-blue-700 transition-colors"
+            className="refinement-yes-btn"
           >
             Yes
           </button>
           <button
             onClick={() => {/* Hide refinement section */}}
-            className="px-3 py-1 bg-gray-300 text-gray-700 text-sm rounded hover:bg-gray-400 transition-colors"
+            className="refinement-no-btn"
           >
             No
           </button>
         </div>
       ) : (
-        <div className="space-y-2">
+        <div className="refinement-input-area">
           <textarea
             value={feedback}
             onChange={(e) => setFeedback(e.target.value)}
             placeholder="How would you like me to refine or reframe the question?"
-            className="w-full p-2 text-sm border border-gray-300 rounded resize-none"
+            className="refinement-textarea"
             rows="2"
           />
-          <div className="flex gap-2">
+          <div className="refinement-action-buttons">
             <button
               onClick={handleRefine}
               disabled={!feedback.trim() || isRefining}
-              className="px-3 py-1 bg-blue-600 text-white text-sm rounded hover:bg-blue-700 disabled:opacity-50 transition-colors"
+              className="refinement-submit-btn"
             >
               {isRefining ? 'Refining...' : 'Refine'}
             </button>
             <button
               onClick={() => setShowRefineInput(false)}
-              className="px-3 py-1 bg-gray-300 text-gray-700 text-sm rounded hover:bg-gray-400 transition-colors"
+              className="refinement-cancel-btn"
             >
               Cancel
             </button>
@@ -251,20 +197,20 @@ const DownloadReportSection = ({ message, onDownloadReport, isGenerating }) => {
   if (!message.sqlQuery || !message.rawData) return null;
   
   return (
-    <div className="mt-3 p-3 bg-green-50 rounded-lg border border-green-200">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <svg className="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <div className="download-report-section">
+      <div className="download-report-content">
+        <div className="download-report-info">
+          <svg className="download-report-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
           </svg>
-          <span className="text-sm font-medium text-green-800">Executive Report Available</span>
+          <span className="download-report-text">Executive Report Available</span>
         </div>
         <button
           onClick={() => onDownloadReport(message)}
           disabled={isGenerating}
-          className="inline-flex items-center gap-2 px-3 py-1.5 bg-green-600 text-white text-sm font-medium rounded hover:bg-green-700 disabled:opacity-50 transition-colors"
+          className="download-report-btn"
         >
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg className="button-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M9 19l3 3m0 0l3-3m-3 3V10" />
           </svg>
           {isGenerating ? 'Generating...' : 'Download Report'}
@@ -279,17 +225,17 @@ const MessageDetails = ({ sqlQuery, rawData, rowCount, dataSources, isExpanded }
   if (!isExpanded) return null;
 
   return (
-    <div className="mt-3 p-3 bg-gray-50 rounded-lg border border-gray-200">
-      <div className="space-y-3">
+    <div className="message-details">
+      <div className="message-details-content">
         {/* Data Sources Section */}
         {dataSources && dataSources.length > 0 && (
-          <div>
-            <h4 className="text-sm font-semibold text-gray-700 mb-2">Data Sources:</h4>
-            <div className="bg-green-50 p-3 rounded border border-green-200">
-              <ul className="text-sm text-gray-700 space-y-1">
+          <div className="data-sources-section">
+            <h4 className="section-title">Data Sources:</h4>
+            <div className="data-sources-list">
+              <ul className="sources-list">
                 {dataSources.map((source, index) => (
-                  <li key={index} className="flex items-center gap-2">
-                    <svg className="w-3 h-3 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+                  <li key={index} className="source-item">
+                    <svg className="source-icon" fill="currentColor" viewBox="0 0 20 20">
                       <path fillRule="evenodd" d="M3 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V4zm0 4a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H4a1 1 0 01-1-1V8zm8 0a1 1 0 011-1h4a1 1 0 011 1v2a1 1 0 01-1 1h-4a1 1 0 01-1-1V8z" clipRule="evenodd" />
                     </svg>
                     {source}
@@ -301,26 +247,26 @@ const MessageDetails = ({ sqlQuery, rawData, rowCount, dataSources, isExpanded }
         )}
         
         {/* SQL Query Section */}
-        <div>
-          <h4 className="text-sm font-semibold text-gray-700 mb-2">SQL Query:</h4>
-          <div className="bg-gray-900 text-green-400 p-4 rounded-lg text-sm font-mono overflow-x-auto border border-gray-700">
-            <pre className="whitespace-pre-wrap leading-relaxed">{sqlQuery}</pre>
+        <div className="sql-section">
+          <h4 className="section-title">SQL Query:</h4>
+          <div className="sql-code-block">
+            <pre className="sql-code">{sqlQuery}</pre>
           </div>
         </div>
 
         {/* Raw Data Section */}
-        <div>
-          <h4 className="text-sm font-semibold text-gray-700 mb-2">
+        <div className="raw-data-section">
+          <h4 className="section-title">
             Raw Data ({rowCount} rows):
           </h4>
-          <div className="bg-white border rounded max-h-64 overflow-auto">
+          <div className="data-table-container">
             {rawData && rawData.length > 0 ? (
-              <div className="overflow-x-auto">
-                <table className="min-w-full text-sm">
-                  <thead className="bg-gray-50">
+              <div className="table-wrapper">
+                <table className="data-table">
+                  <thead className="table-header">
                     <tr>
                       {Object.keys(rawData[0]).map((key) => (
-                        <th key={key} className="px-3 py-2 text-left font-medium text-gray-700 border-b">
+                        <th key={key} className="table-header-cell">
                           {key}
                         </th>
                       ))}
@@ -328,9 +274,9 @@ const MessageDetails = ({ sqlQuery, rawData, rowCount, dataSources, isExpanded }
                   </thead>
                   <tbody>
                     {rawData.slice(0, 10).map((row, index) => (
-                      <tr key={index} className="hover:bg-gray-50">
+                      <tr key={index} className="table-row">
                         {Object.values(row).map((value, cellIndex) => (
-                          <td key={cellIndex} className="px-3 py-2 border-b text-gray-600">
+                          <td key={cellIndex} className="table-cell">
                             {value !== null && value !== undefined ? String(value) : 'NULL'}
                           </td>
                         ))}
@@ -339,13 +285,13 @@ const MessageDetails = ({ sqlQuery, rawData, rowCount, dataSources, isExpanded }
                   </tbody>
                 </table>
                 {rawData.length > 10 && (
-                  <div className="p-2 text-center text-gray-500 text-sm border-t">
+                  <div className="table-footer">
                     ... and {rawData.length - 10} more rows
                   </div>
                 )}
               </div>
             ) : (
-              <div className="p-4 text-center text-gray-500">No data returned</div>
+              <div className="no-data-message">No data returned</div>
             )}
           </div>
         </div>
@@ -453,18 +399,6 @@ const ChatInterface = ({ messages, onSendMessage, onConfirmQuestion, onRefineMes
 
   return (
     <div className={`chat-interface ${hideHeader ? '' : 'full-height'}`}>
-      {/* Header */}
-      {!hideHeader && (
-        <div className="chat-header">
-          <div className="header-content">
-            <div className="logo">
-              <div className="logo-icon">🔍</div>
-              <span className="logo-text">Counterparty Risk Assistant</span>
-            </div>
-          </div>
-        </div>
-      )}
-
       {/* Messages Area */}
       <div className="messages-container">
         <div className="messages">

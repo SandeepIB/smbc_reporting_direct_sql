@@ -487,6 +487,7 @@ function App() {
         <Routes>
           <Route path="/" element={<LandingPage />} />
           <Route path="/chat" element={<ChatPage />} />
+
           <Route path="/ccr" element={<CCRDeckAssistantPage />} />
           <Route path="/admin" element={<AdminPageWrapper />} />
         </Routes>
