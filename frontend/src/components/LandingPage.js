@@ -29,16 +29,33 @@ const LandingPage = () => {
   useEffect(() => {
     const fetchSampleData = async () => {
       try {
-       const protocol = window.location.protocol; // 'http:' or 'https:'
-       const API_BASE_URL = `${protocol}//${window.location.hostname}:8000`;
-        const response = await fetch(`${API_BASE_URL}/api/sample-data`);
-        const result = await response.json();
-        if (result.success && result.data) {
+        // Try multiple API configurations automatically
+        const apiUrls = [
+          `${window.location.protocol}//${window.location.hostname}:${window.location.port}`,
+          `${window.location.protocol}//${window.location.hostname}:8000`,
+          `http://${window.location.hostname}:8000`,
+          `${window.location.protocol}//${window.location.hostname}:3000`
+        ];
+        
+        let result = null;
+        for (const apiUrl of apiUrls) {
+          try {
+            const response = await fetch(`${apiUrl}/api/sample-data`);
+            if (response.ok) {
+              result = await response.json();
+              console.log(`API connected successfully via: ${apiUrl}`);
+              break;
+            }
+          } catch (err) {
+            console.warn(`Failed to connect to: ${apiUrl}`);
+          }
+        }
+        
+        if (result && result.success && result.data) {
           setSampleData(result.data);
         }
       } catch (error) {
         console.error('Error fetching sample data:', error);
-        // Keep empty array as fallback
       } finally {
         setIsLoading(false);
       }

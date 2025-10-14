@@ -607,6 +607,7 @@ async def add_training_data(request: TrainingDataRequest):
         logger.error(f"Error adding training data: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
 
+@app.get("/sample-data")
 @app.get("/api/sample-data")
 async def get_sample_data():
     """Get top 20 records from database for landing page"""

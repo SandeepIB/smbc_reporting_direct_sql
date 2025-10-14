@@ -1,25 +1,69 @@
 import axios from 'axios';
 import config from '../config/api';
 
-const API_BASE_URL = config.API_URL;
+// Enhanced API client with fallback support
+const createApiClient = () => {
+  const baseURL = config.API_URL;
+  return axios.create({
+    baseURL,
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    timeout: 10000,
+  });
+};
 
-const api = axios.create({
-  baseURL: API_BASE_URL,
-  headers: {
-    'Content-Type': 'application/json',
-  },
-});
+// Fallback API request function
+const apiRequestWithFallback = async (endpoint, options = {}) => {
+  const apiUrls = [
+    config.API_URL,
+    `${window.location.protocol}//${window.location.hostname}:8000`,
+    `http://${window.location.hostname}:8000`,
+    `${window.location.protocol}//${window.location.hostname}:${window.location.port}`
+  ];
+  
+  for (const baseUrl of apiUrls) {
+    try {
+      const api = axios.create({
+        baseURL: baseUrl,
+        headers: { 'Content-Type': 'application/json' },
+        timeout: 10000,
+      });
+      
+      const response = await api.request({ url: endpoint, ...options });
+      return response;
+    } catch (error) {
+      console.warn(`API request failed for ${baseUrl}${endpoint}:`, error.message);
+    }
+  }
+  
+  throw new Error(`All API endpoints failed for ${endpoint}`);
+};
+
+const api = createApiClient();
 
 export const chatService = {
   async sendMessage(message, sessionId = null) {
     try {
-      const response = await api.post('/chat', {
-        message,
-        session_id: sessionId
+      const response = await apiRequestWithFallback('/chat', {
+        method: 'POST',
+        data: {
+          message,
+          session_id: sessionId
+        }
       });
       return response.data;
     } catch (error) {
-      throw new Error(error.response?.data?.detail || 'Failed to send message');
+      // Fallback to original method
+      try {
+        const response = await api.post('/chat', {
+          message,
+          session_id: sessionId
+        });
+        return response.data;
+      } catch (fallbackError) {
+        throw new Error(error.response?.data?.detail || 'Failed to send message');
+      }
     }
   },
 
