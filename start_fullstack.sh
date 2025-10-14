@@ -72,7 +72,20 @@ echo "✅ Backend server started successfully"
 # Start frontend development server
 echo "🌐 Starting frontend development server on port 3000..."
 cd frontend
-npm start &
+
+# Check and fix react-scripts
+if [ ! -f "node_modules/.bin/react-scripts" ]; then
+    echo "Installing react-scripts..."
+    npm install react-scripts@5.0.1 --save-dev --legacy-peer-deps
+fi
+
+# Set environment variables to suppress warnings
+export GENERATE_SOURCEMAP=false
+export SKIP_PREFLIGHT_CHECK=true
+export NODE_OPTIONS="--max-old-space-size=4096"
+
+# Start with explicit command
+CHOKIDAR_USEPOLLING=false npm start &
 FRONTEND_PID=$!
 cd ..
 
