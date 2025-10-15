@@ -1,16 +1,13 @@
 # SMBC Risk Management Suite v1.0
 
-A comprehensive full-stack application that converts natural language prompts into actionable insights by generating SQL queries and executing them against a MySQL database. Features integrated CCR Deck Assistant for chart analysis and PowerPoint report generation.
+Full-stack application for natural language to SQL conversion with CCR Deck Assistant for chart analysis and PowerPoint generation.
 
 ## 🚀 Features
 
-- **Natural Language Processing**: Convert prompts to insights using OpenAI GPT-4
-- **Safe Query Execution**: Execute queries with proper error handling and validation
-- **Session Management**: Multi-user support with persistent chat history
-- **CCR Deck Assistant**: Advanced chart analysis using GPT-4o vision capabilities
-- **PowerPoint Generation**: Professional slide deck creation with SMBC corporate branding
-- **Admin Dashboard**: Complete feedback management and training data curation system
-- **Universal Compatibility**: Works with any domain/port combination
+- **Natural Language to SQL**: OpenAI GPT-4 powered query generation
+- **CCR Deck Assistant**: Chart analysis with PowerPoint report generation
+- **Admin Dashboard**: Feedback management and training data curation
+- **Universal Deployment**: Works with any domain/port combination
 
 ## 📋 Prerequisites
 
@@ -21,27 +18,16 @@ A comprehensive full-stack application that converts natural language prompts in
 
 ## ⚡ Quick Start
 
-### Option 1: Production Setup with Domain & Services
+### Production Setup
 ```bash
 git clone https://github.com/SandeepIB/smbc_reporting_direct_sql.git
 cd smbc_reporting_direct_sql
-
-# Install dependencies
 ./install.sh
-
-# Configure environment
-nano .env  # Add your API keys and database credentials
-
-# Production setup with domain
 ./setup_production.sh your-domain.com
-
-# Check status
-sudo systemctl status smbc-backend smbc-frontend smbc-proxy
 ```
 
-### Option 2: Development Mode
+### Development Mode
 ```bash
-# Install and start in development mode
 ./install.sh
 ./start_fullstack.sh
 ```
