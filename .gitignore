@@ -95,8 +95,6 @@ schema_cache.json
 # Generated reports and outputs
 smbc_reporting_tool/reports/
 smbc_reporting_tool/output/
-*.pptx
-*.pdf
 
 # Temporary files
 tmp/
@@ -106,3 +104,15 @@ temp/
 # Build outputs
 frontend/build/
 frontend/dist/
+
+# Server logs
+server.log
+frontend.log
+backend.log
+
+# Package locks (keep only main one)
+package-lock.json
+
+# Vim swap files
+*.swp
+*.swo
