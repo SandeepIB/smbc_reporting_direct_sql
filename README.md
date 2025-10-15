@@ -35,18 +35,41 @@ A comprehensive full-stack application that converts natural language prompts in
 
 ## ⚡ Quick Start
 
-### 1. Clone Repository
+### Option 1: Complete Setup with Domain (Recommended)
 ```bash
 git clone https://github.com/SandeepIB/smbc_reporting_direct_sql.git
 cd smbc_reporting_direct_sql
+
+# Complete installation with domain setup
+./install_with_domain.sh your-domain.com
+
+# Configure environment
+# Update .env file with your settings
+
+# Start application
+./start_fullstack.sh
 ```
 
-### 2. Install Dependencies
+### Option 2: Manual Setup
 ```bash
+# 1. Clone Repository
+git clone https://github.com/SandeepIB/smbc_reporting_direct_sql.git
+cd smbc_reporting_direct_sql
+
+# 2. Install Dependencies
 ./install.sh
+
+# 3. Setup Domain (Optional)
+./setup_domain.sh your-domain.com
+
+# 4. Configure Environment
+# Update .env file with your settings
+
+# 5. Start Application
+./start_fullstack.sh
 ```
 
-### 3. Configure Environment
+### Environment Configuration
 Update `.env` file with your settings:
 ```env
 OPENAI_API_KEY=your_openai_api_key_here
@@ -56,15 +79,10 @@ MYSQL_PASSWORD=your_password
 MYSQL_DATABASE=your_database
 ```
 
-### 4. Start Application
-```bash
-./start_fullstack.sh
-```
-
-### 5. Access Application
-- **Web Interface**: http://localhost:3000
-- **API Server**: http://localhost:8000
-- **Admin Panel**: http://localhost:3000 (click ⚙️ icon)
+### Access Points
+- **Web Interface**: http://your-domain.com (or http://localhost:3000)
+- **API Server**: http://localhost:8000 (proxied through web server)
+- **Admin Panel**: Click ⚙️ icon in web interface
 
 **Admin Credentials**: admin / admin123
 
@@ -161,6 +179,34 @@ REACT_APP_API_URL=http://localhost:8000
 - `POST /analyze` - Analyze uploaded images
 - `GET /download-report` - Download PowerPoint report
 - `GET /get-image/{filename}` - Serve image files
+
+## 🌐 Domain Setup
+
+### Automatic Web Server Installation
+The `setup_domain.sh` script automatically:
+- **Detects** existing web servers (Nginx/Apache)
+- **Installs** web server if none found
+- **Configures** reverse proxy for your domain
+- **Sets up** SSL-ready configuration
+
+### Usage Examples
+```bash
+# Setup for production domain
+./setup_domain.sh myapp.example.com
+
+# Setup for local development
+./setup_domain.sh localhost 8080
+
+# Setup with custom ports
+./setup_domain.sh myapp.com 80 443
+```
+
+### SSL Certificate (Optional)
+```bash
+# Install certbot and get SSL certificate
+sudo apt install certbot python3-certbot-nginx
+sudo certbot --nginx -d your-domain.com
+```
 
 ## 🛠️ Development
 
