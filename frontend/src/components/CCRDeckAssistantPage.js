@@ -16,7 +16,7 @@ const CCRDeckAssistantPage = () => {
   const [templates, setTemplates] = useState([]);
   const [selectedTemplate, setSelectedTemplate] = useState(null);
   const [isLoadingTemplates, setIsLoadingTemplates] = useState(false);
-  const [showTemplateModal, setShowTemplateModal] = useState(false);
+  const [showTemplateModal, setShowTemplateModal] = useState(null);
 
   // Fix scrolling issue and load templates
   useEffect(() => {
@@ -335,56 +335,109 @@ const CCRDeckAssistantPage = () => {
                   </div>
                 </div>
               ) : (
-                <div className="advanced-template-grid">
+                <div className="template-gallery">
                   {templates.map((template) => (
                     <div 
                       key={template.filename}
-                      className={`advanced-template-card ${
+                      className={`template-gallery-item ${
                         selectedTemplate === template.filename ? 'selected' : ''
-                      } ${
-                        !template.active ? 'disabled' : 'selectable'
                       }`}
                       onClick={() => handleTemplateSelect(template.filename)}
                     >
-                      <div className="template-card-header">
-                        {selectedTemplate === template.filename && (
-                          <div className="selected-checkmark">✓</div>
-                        )}
+                      <div className="template-radio-container">
+                        <input
+                          type="radio"
+                          id={`template-${template.filename}`}
+                          name="template-selection"
+                          value={template.filename}
+                          checked={selectedTemplate === template.filename}
+                          onChange={() => handleTemplateSelect(template.filename)}
+                          className="template-radio"
+                        />
+                        <label htmlFor={`template-${template.filename}`} className="template-radio-label">
+                          <span className="radio-custom"></span>
+                        </label>
                       </div>
                       
-                      <div className="template-preview-container">
+                      <div className="template-thumbnail" onClick={() => setShowTemplateModal(template)}>
                         {template.preview ? (
                           <img 
                             src={template.preview} 
                             alt={`${template.name} preview`}
-                            className="template-preview-image"
+                            className="template-image"
+                            onError={(e) => {
+                              e.target.style.display = 'none';
+                              e.target.nextSibling.style.display = 'flex';
+                            }}
                           />
-                        ) : (
-                          <div className="template-placeholder">
-                            <div className="placeholder-slide">
-                              <div className="placeholder-header"></div>
-                              <div className="placeholder-content">
-                                <div className="placeholder-line"></div>
-                                <div className="placeholder-line short"></div>
-                                <div className="placeholder-chart">📊</div>
-                              </div>
+                        ) : null}
+                        <div className="template-placeholder" style={{display: template.preview ? 'none' : 'flex'}}>
+                          <div className="placeholder-slide">
+                            <div className="placeholder-header"></div>
+                            <div className="placeholder-content">
+                              <div className="placeholder-line"></div>
+                              <div className="placeholder-line short"></div>
+                              <div className="placeholder-chart">📊</div>
                             </div>
                           </div>
-                        )}
-                        
+                        </div>
                         <div className="template-overlay">
-                          <button className="select-overlay-btn">
-                            {selectedTemplate === template.filename ? 'Selected' : 'Select'}
-                          </button>
+                          <span className="view-btn">👁️ Preview</span>
                         </div>
                       </div>
                       
-                      <div className="template-details">
-                        <h4 className="template-title">{template.name}</h4>
-                        <p className="template-desc">{template.description}</p>
+                      <div className="template-info">
+                        <h4 className="template-name">{template.name}</h4>
+                        <p className="template-description">{template.description}</p>
                       </div>
                     </div>
                   ))}
+                </div>
+              )}
+              
+              {/* Template Preview Modal */}
+              {showTemplateModal && (
+                <div className="template-modal-overlay" onClick={() => setShowTemplateModal(null)}>
+                  <div className="template-modal" onClick={(e) => e.stopPropagation()}>
+                    <div className="template-modal-header">
+                      <h3>{showTemplateModal.name}</h3>
+                      <button className="template-modal-close" onClick={() => setShowTemplateModal(null)}>×</button>
+                    </div>
+                    <div className="template-modal-content">
+                      {showTemplateModal.preview ? (
+                        <img 
+                          src={showTemplateModal.preview} 
+                          alt={`${showTemplateModal.name} preview`}
+                          className="template-modal-image"
+                        />
+                      ) : (
+                        <div className="template-modal-placeholder">
+                          <div className="placeholder-slide large">
+                            <div className="placeholder-header"></div>
+                            <div className="placeholder-content">
+                              <div className="placeholder-line"></div>
+                              <div className="placeholder-line short"></div>
+                              <div className="placeholder-chart">📊</div>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                      <div className="template-modal-info">
+                        <p>{showTemplateModal.description}</p>
+                        <div className="template-modal-actions">
+                          <button 
+                            className="template-select-btn"
+                            onClick={() => {
+                              handleTemplateSelect(showTemplateModal.filename);
+                              setShowTemplateModal(null);
+                            }}
+                          >
+                            {selectedTemplate === showTemplateModal.filename ? '✓ Selected' : 'Select Template'}
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               )}
               
