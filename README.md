@@ -21,36 +21,29 @@ A comprehensive full-stack application that converts natural language prompts in
 
 ## ⚡ Quick Start
 
-### Complete Setup (Recommended)
+### Option 1: Production Setup with Domain & Services
 ```bash
 git clone https://github.com/SandeepIB/smbc_reporting_direct_sql.git
 cd smbc_reporting_direct_sql
 
-# Complete installation with domain setup
-./install_with_domain.sh your-domain.com
-
-# Configure environment
-nano .env  # Update with your settings
-
-# Start as background service
-./manage_services.sh start
-```
-
-### Manual Setup
-```bash
-# 1. Install dependencies
+# Install dependencies
 ./install.sh
 
-# 2. Setup domain (optional)
-./setup_domain.sh your-domain.com
+# Configure environment
+nano .env  # Add your API keys and database credentials
 
-# 3. Configure environment
-nano .env
+# Production setup with domain
+./setup_production.sh your-domain.com
 
-# 4. Start application
-./start_fullstack.sh  # Development mode
-# OR
-./manage_services.sh start  # Background service
+# Check status
+sudo systemctl status smbc-backend smbc-frontend smbc-proxy
+```
+
+### Option 2: Development Mode
+```bash
+# Install and start in development mode
+./install.sh
+./start_fullstack.sh
 ```
 
 ## 🔧 Configuration
@@ -66,72 +59,146 @@ MYSQL_DATABASE=your_database
 
 ## 🛠️ Service Management
 
-### Background Services (Production)
+### Production Services (Background)
 ```bash
-# Start services (survives terminal close)
-./manage_services.sh start
+# Complete production setup
+./setup_production.sh smbcaipoc.creatingwow.in
 
-# Stop services
-./manage_services.sh stop
+# Individual service control
+./manage_services.sh start    # Start backend/frontend
+./manage_services.sh stop     # Stop services
+./manage_services.sh status   # Check status
+./manage_services.sh logs     # View logs
 
-# Check status
-./manage_services.sh status
-
-# View logs
-./manage_services.sh logs
-
-# Remove services
-./manage_services.sh remove
+# Proxy service control
+sudo systemctl start smbc-proxy
+sudo systemctl stop smbc-proxy
+sudo systemctl status smbc-proxy
 ```
 
 ### Development Mode
 ```bash
-# Interactive mode (stops when terminal closes)
-./start_fullstack.sh
+./start_fullstack.sh  # Interactive mode (stops when terminal closes)
 ```
 
-## 🌐 Domain Setup
+## 🌐 Domain Setup Guide
 
-### Automatic Web Server Installation
+### Step 1: Basic Installation
 ```bash
-# Setup for production domain
-./setup_domain.sh myapp.example.com
+git clone https://github.com/SandeepIB/smbc_reporting_direct_sql.git
+cd smbc_reporting_direct_sql
+./install.sh
+```
 
-# Setup with SSL
-sudo certbot --nginx -d your-domain.com
+### Step 2: Configure Environment
+```bash
+# Edit configuration file
+nano .env
+
+# Add your credentials:
+OPENAI_API_KEY=your_key_here
+MYSQL_HOST=localhost
+MYSQL_USER=your_db_user
+MYSQL_PASSWORD=your_db_password
+MYSQL_DATABASE=your_database
+```
+
+### Step 3: Production Setup
+```bash
+# Setup with your domain
+./setup_production.sh your-domain.com 8443
+
+# This creates:
+# - Backend service (port 8000)
+# - Frontend service (port 3000)  
+# - HTTPS proxy service (port 8443)
+# - SSL certificate for domain
+# - Systemd services for auto-restart
+```
+
+### Step 4: Domain Configuration
+```bash
+# Add domain to hosts file (for local testing)
+echo "127.0.0.1 your-domain.com" | sudo tee -a /etc/hosts
+
+# For production server, configure DNS to point to server IP
+```
+
+### Step 5: Access Application
+```bash
+# Local access
+https://your-domain.com:8443
+
+# Admin panel: Click ⚙️ icon
+# Username: admin
+# Password: admin123
+```
+
+## 🔍 Service Status & Troubleshooting
+
+### Check All Services
+```bash
+# Service status
+sudo systemctl status smbc-backend smbc-frontend smbc-proxy
+
+# View logs
+sudo journalctl -u smbc-backend -f
+sudo journalctl -u smbc-frontend -f  
+sudo journalctl -u smbc-proxy -f
+
+# Test endpoints
+curl http://localhost:8000/health
+curl http://localhost:3000
+curl -k https://your-domain.com:8443/health
+```
+
+### Common Issues
+
+**Services won't start**
+```bash
+# Check dependencies installed
+./install.sh
+
+# Check configuration
+cat .env
+
+# Restart services
+sudo systemctl restart smbc-backend smbc-frontend smbc-proxy
+```
+
+**Domain not accessible**
+```bash
+# Check hosts file
+cat /etc/hosts | grep your-domain
+
+# Check proxy service
+sudo systemctl status smbc-proxy
+
+# Check SSL certificate
+ls -la your-domain.com.crt your-domain.com.key
+```
+
+**Database connection issues**
+```bash
+# Verify MySQL running
+sudo systemctl status mysql
+
+# Test connection
+mysql -h localhost -u your_user -p your_database
 ```
 
 ## 🎯 Usage
 
 ### Access Points
-- **Web Interface**: http://localhost:3000 (or your domain)
+- **Web Interface**: https://your-domain.com:8443
 - **Admin Panel**: Click ⚙️ icon (admin/admin123)
+- **API Health**: https://your-domain.com:8443/health
 
 ### Features
 1. **Chat Interface**: Natural language to SQL queries
-2. **CCR Deck Assistant**: Upload and analyze chart images
+2. **CCR Deck Assistant**: Upload and analyze chart images  
 3. **Admin Dashboard**: Manage feedback and training data
-4. **Executive Reports**: Generate professional reports
-
-## 🔌 API Endpoints
-
-- `POST /chat` - Send message to chatbot
-- `GET /health` - Health check
-- `POST /upload-images` - Upload chart images
-- `POST /analyze` - Analyze uploaded images
-- `GET /download-report` - Download PowerPoint report
-
-## 🔍 Troubleshooting
-
-### Common Issues
-- **Backend won't start**: Check `backend/venv/` exists and `.env` is configured
-- **Frontend build fails**: Run `cd frontend && npm install --legacy-peer-deps`
-- **Database connection**: Verify MySQL is running and credentials are correct
-
-### Logs
-- **Service logs**: `./manage_services.sh logs`
-- **Development logs**: Check terminal output
-- **Browser logs**: F12 Developer Console
+4. **Executive Reports**: Generate professional PowerPoint reports
 
 ## 📚 Project Structure
 
@@ -142,16 +209,24 @@ sudo certbot --nginx -d your-domain.com
 ├── install.sh              # Install dependencies
 ├── start_fullstack.sh      # Development mode
 ├── manage_services.sh      # Service management
-├── setup_domain.sh         # Domain configuration
-└── install_with_domain.sh  # Complete setup
+├── setup_production.sh     # Production setup
+└── README.md              # This file
 ```
+
+## 🔌 API Endpoints
+
+- `POST /chat` - Send message to chatbot
+- `GET /health` - Health check
+- `POST /upload-images` - Upload chart images
+- `POST /analyze` - Analyze uploaded images
+- `GET /download-report` - Download PowerPoint report
 
 ## 🤝 Support
 
-1. Check this README for solutions
-2. Review logs: `./manage_services.sh logs`
-3. Verify prerequisites are installed
-4. Ensure `.env` is configured correctly
+1. Check service status: `sudo systemctl status smbc-*`
+2. Review logs: `sudo journalctl -u smbc-backend -f`
+3. Verify configuration: `cat .env`
+4. Test endpoints: `curl -k https://your-domain.com:8443/health`
 
 ## 📄 License
 
