@@ -522,11 +522,13 @@ body:has(.ccr-page) {
 .template-gallery-item:hover {
   transform: translateY(-4px);
   box-shadow: 0 8px 25px rgba(0,0,0,0.15);
-  border-color: #007bff;
+  border-color: #004B35;
+
 }
 
 .template-gallery-item.selected {
-  border-color: #007bff;
+  border-color: #004B35;
+
   background: #f8f9ff;
   box-shadow: 0 4px 15px rgba(0,123,255,0.2);
 }
@@ -559,8 +561,10 @@ body:has(.ccr-page) {
 }
 
 .template-radio:checked + .template-radio-label .radio-custom {
-  border-color: #007bff;
-  background: #007bff;
+  border-color: #004B35;
+
+  background: #004B35;
+
 }
 
 .template-radio:checked + .template-radio-label .radio-custom::after {
@@ -656,7 +660,7 @@ body:has(.ccr-page) {
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0,123,255,0.9);
+  background: rgba(0, 75, 53, .7);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -786,7 +790,8 @@ body:has(.ccr-page) {
 }
 
 .template-select-btn {
-  background: #007bff;
+  background: #004B35;
+
   color: white;
   border: none;
   padding: 12px 24px;
