@@ -1,5 +1,10 @@
 from openai import OpenAI
 from src.core.config import Config
+import json
+import pymysql
+from datetime import datetime
+import os
+
 
 class AIService:
     def __init__(self):
@@ -560,3 +565,70 @@ Format with clear sections and bullet points for readability."""
             
         except Exception as e:
             return f"Error generating executive report: {e}"
+
+    def export_training_data_to_jsonl(self, mysql_config: dict, table_name: str, 
+                                  output_file: str = "training_data.jsonl", schema_cache=None):
+    # """
+    # Export MySQL table data into fine-tuning JSONL format.
+    # If schema_cache is provided, use cached schema for all prompts.
+    # """
+        import pymysql
+        conn = None
+        try:
+            conn = pymysql.connect(**mysql_config)
+            cursor = conn.cursor(pymysql.cursors.DictCursor)
+            cursor.execute(f"SELECT * FROM {table_name}")
+            rows = cursor.fetchall()
+
+            if not rows:
+                raise Exception("No training data found in table.")
+
+            with open(output_file, "w", encoding="utf-8") as f:
+                for row in rows:
+                    schema_text = schema_cache.load_schema_from_cache() if schema_cache else "Schema not provided"
+                    prompt = f"Generate SQL for this question using schema:\nSchema: {schema_text}\nQuestion: {row['question']}\nSQL:"
+                    completion = row["answer"].strip() + " \ncontext : " + (row.get("context") or "")
+                    
+                    json.dump({"messages": [{"role": "user", "content": prompt}, {"role": "assistant", "content": completion}]}, f)
+                    f.write("\n")
+
+            return f"✅ Exported {len(rows)} training records to {output_file}"
+
+        except Exception as e:
+            raise Exception(f"Error exporting training data: {e}")
+        finally:
+            if conn:
+                conn.close()
+    
+    def start_finetune_training(self, base_model: str = "gpt-4o-mini", training_file_path: str = "training_data.jsonl"):
+        # """
+        # Upload dataset and start fine-tuning job.
+        # """
+        try:
+            # Upload file to OpenAI
+            upload_response = self.client.files.create(
+                file=open(training_file_path, "rb"),
+                purpose="fine-tune"
+            )
+
+            file_id = upload_response.id
+            print(f"✅ Uploaded training file: {file_id}")
+
+            # Start fine-tune job
+            fine_tune = self.client.fine_tuning.jobs.create(
+                training_file=file_id,
+                model=base_model,
+            )
+
+            job_id = fine_tune.id
+            print(f"🚀 Fine-tuning started: {job_id}")
+
+            return {
+                "status": "started",
+                "file_id": file_id,
+                "job_id": job_id,
+                "base_model": base_model
+            }
+
+        except Exception as e:
+            raise Exception(f"Error starting fine-tune training: {e}")

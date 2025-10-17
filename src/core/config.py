@@ -5,6 +5,8 @@ load_dotenv()
 
 class Config:
     OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY")
+
+    FINETUNED_MODEL = os.environ.get("FINETUNED_MODEL")
     
     MYSQL_HOST = os.environ.get("MYSQL_HOST", "localhost")
     MYSQL_PORT = int(os.environ.get("MYSQL_PORT", 3306))

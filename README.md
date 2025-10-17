@@ -4,21 +4,22 @@ Full-stack application for natural language to SQL conversion with CCR Deck Assi
 
 ## 🚀 Features
 
-- **Natural Language to SQL**: OpenAI GPT-4 powered query generation
-- **CCR Deck Assistant**: Chart analysis with PowerPoint report generation
-- **Admin Dashboard**: Feedback management and training data curation
-- **Universal Deployment**: Works with any domain/port combination
+* **Natural Language to SQL**: OpenAI GPT-4 powered query generation
+* **CCR Deck Assistant**: Chart analysis with PowerPoint report generation
+* **Admin Dashboard**: Feedback management and training data curation
+* **Universal Deployment**: Works with any domain/port combination
 
 ## 📋 Prerequisites
 
-- **Python 3.8+** - [Download Python](https://python.org)
-- **Node.js 16+** - [Download Node.js](https://nodejs.org)
-- **MySQL Database** - Running and accessible
-- **OpenAI API Key** - For AI-powered analysis
+* **Python 3.8+** - [Download Python](https://python.org)
+* **Node.js 16+** - [Download Node.js](https://nodejs.org)
+* **MySQL Database** - Running and accessible
+* **OpenAI API Key** - For AI-powered analysis
 
 ## ⚡ Quick Start
 
 ### Production Setup
+
 ```bash
 git clone https://github.com/SandeepIB/smbc_reporting_direct_sql.git
 cd smbc_reporting_direct_sql
@@ -27,6 +28,7 @@ cd smbc_reporting_direct_sql
 ```
 
 ### Development Mode
+
 ```bash
 ./install.sh
 ./start_fullstack.sh
@@ -35,6 +37,7 @@ cd smbc_reporting_direct_sql
 ## 🔧 Configuration
 
 Update `.env` file with your settings:
+
 ```env
 OPENAI_API_KEY=your_openai_api_key_here
 MYSQL_HOST=localhost
@@ -46,6 +49,7 @@ MYSQL_DATABASE=your_database
 ## 🛠️ Service Management
 
 ### Production Services (Background)
+
 ```bash
 # Complete production setup
 ./setup_production.sh smbcaipoc.creatingwow.in
@@ -63,6 +67,7 @@ sudo systemctl status smbc-proxy
 ```
 
 ### Development Mode
+
 ```bash
 ./start_fullstack.sh  # Interactive mode (stops when terminal closes)
 ```
@@ -70,6 +75,7 @@ sudo systemctl status smbc-proxy
 ## 🌐 Domain Setup Guide
 
 ### Step 1: Basic Installation
+
 ```bash
 git clone https://github.com/SandeepIB/smbc_reporting_direct_sql.git
 cd smbc_reporting_direct_sql
@@ -77,6 +83,7 @@ cd smbc_reporting_direct_sql
 ```
 
 ### Step 2: Configure Environment
+
 ```bash
 # Edit configuration file
 nano .env
@@ -90,32 +97,26 @@ MYSQL_DATABASE=your_database
 ```
 
 ### Step 3: Production Setup
+
 ```bash
 # Setup with your domain
 ./setup_production.sh your-domain.com 8443
-
-# This creates:
-# - Backend service (port 8000)
-# - Frontend service (port 3000)  
-# - HTTPS proxy service (port 8443)
-# - SSL certificate for domain
-# - Systemd services for auto-restart
 ```
 
 ### Step 4: Domain Configuration
+
 ```bash
 # Add domain to hosts file (for local testing)
 echo "127.0.0.1 your-domain.com" | sudo tee -a /etc/hosts
-
-# For production server, configure DNS to point to server IP
 ```
 
 ### Step 5: Access Application
+
 ```bash
 # Local access
 https://your-domain.com:8443
 
-# Admin panel: Click ⚙️ icon
+# Admin panel: Click 🔧 icon
 # Username: admin
 # Password: admin123
 ```
@@ -123,16 +124,17 @@ https://your-domain.com:8443
 ## 🔍 Service Status & Troubleshooting
 
 ### Check All Services
+
 ```bash
-# Service status
 sudo systemctl status smbc-backend smbc-frontend smbc-proxy
-
-# View logs
 sudo journalctl -u smbc-backend -f
-sudo journalctl -u smbc-frontend -f  
+sudo journalctl -u smbc-frontend -f
 sudo journalctl -u smbc-proxy -f
+```
 
-# Test endpoints
+### Test Endpoints
+
+```bash
 curl http://localhost:8000/health
 curl http://localhost:3000
 curl -k https://your-domain.com:8443/health
@@ -141,48 +143,40 @@ curl -k https://your-domain.com:8443/health
 ### Common Issues
 
 **Services won't start**
+
 ```bash
-# Check dependencies installed
 ./install.sh
-
-# Check configuration
 cat .env
-
-# Restart services
 sudo systemctl restart smbc-backend smbc-frontend smbc-proxy
 ```
 
 **Domain not accessible**
+
 ```bash
-# Check hosts file
 cat /etc/hosts | grep your-domain
-
-# Check proxy service
 sudo systemctl status smbc-proxy
-
-# Check SSL certificate
 ls -la your-domain.com.crt your-domain.com.key
 ```
 
 **Database connection issues**
-```bash
-# Verify MySQL running
-sudo systemctl status mysql
 
-# Test connection
+```bash
+sudo systemctl status mysql
 mysql -h localhost -u your_user -p your_database
 ```
 
 ## 🎯 Usage
 
 ### Access Points
-- **Web Interface**: https://your-domain.com:8443
-- **Admin Panel**: Click ⚙️ icon (admin/admin123)
-- **API Health**: https://your-domain.com:8443/health
+
+* **Web Interface**: [https://your-domain.com:8443](https://your-domain.com:8443)
+* **Admin Panel**: Click 🔧 icon (admin/admin123)
+* **API Health**: [https://your-domain.com:8443/health](https://your-domain.com:8443/health)
 
 ### Features
+
 1. **Chat Interface**: Natural language to SQL queries
-2. **CCR Deck Assistant**: Upload and analyze chart images  
+2. **CCR Deck Assistant**: Upload and analyze chart images
 3. **Admin Dashboard**: Manage feedback and training data
 4. **Executive Reports**: Generate professional PowerPoint reports
 
@@ -192,20 +186,20 @@ mysql -h localhost -u your_user -p your_database
 ├── backend/                 # FastAPI backend
 ├── frontend/                # React frontend
 ├── src/                     # Core modules
-├── install.sh              # Install dependencies
-├── start_fullstack.sh      # Development mode
-├── manage_services.sh      # Service management
-├── setup_production.sh     # Production setup
-└── README.md              # This file
+├── install.sh               # Install dependencies
+├── start_fullstack.sh       # Development mode
+├── manage_services.sh       # Service management
+├── setup_production.sh      # Production setup
+└── README.md                # This file
 ```
 
-## 🔌 API Endpoints
+## 🐜 API Endpoints
 
-- `POST /chat` - Send message to chatbot
-- `GET /health` - Health check
-- `POST /upload-images` - Upload chart images
-- `POST /analyze` - Analyze uploaded images
-- `GET /download-report` - Download PowerPoint report
+* `POST /chat` - Send message to chatbot
+* `GET /health` - Health check
+* `POST /upload-images` - Upload chart images
+* `POST /analyze` - Analyze uploaded images
+* `GET /download-report` - Download PowerPoint report
 
 ## 🤝 Support
 
@@ -214,6 +208,67 @@ mysql -h localhost -u your_user -p your_database
 3. Verify configuration: `cat .env`
 4. Test endpoints: `curl -k https://your-domain.com:8443/health`
 
-## 📄 License
+## 📜 Fine-Tune Model Training
+
+The application supports fine-tuning an OpenAI model to improve SQL query generation based on your own training data.
+
+### 1️⃣ Prepare Environment
+
+```bash
+cd smbc_reporting_direct_sql
+source backend/venv/bin/activate
+```
+
+Ensure `.env` has:
+
+```env
+OPENAI_API_KEY=your_openai_api_key_here
+MYSQL_HOST=localhost
+MYSQL_USER=your_username
+MYSQL_PASSWORD=your_password
+MYSQL_DATABASE=your_database
+```
+
+### 2️⃣ Generate Schema Cache
+
+```bash
+python -m src.services.schema_cache
+```
+
+### 3️⃣ Export Training Data & Start Fine-Tune
+
+```bash
+python -m src.services.train_finetune_model
+```
+
+### 4️⃣ Check Fine-Tune Status (CLI)
+
+```bash
+export $(grep OPENAI_API_KEY .env)
+openai api fine_tuning.jobs.list
+openai api fine_tuning.jobs.retrieve -i YOUR_JOB_ID
+```
+
+### 5️⃣ Update AIService
+
+Once fine-tuning completes, update `.env`:
+
+```env
+FINETUNED_MODEL=your_finetuned_model_name
+```
+
+### 6️⃣ Optional: Watch Job Continuously
+
+```bash
+watch -n 10 "openai api fine_tuning.jobs.retrieve -i YOUR_JOB_ID"
+```
+
+### 7️⃣ Tips
+
+* Only approved data (`approved_by`) is exported.
+* Do not change the `training_data` table structure.
+* Adjust `ROW_LIMIT` in `.env` for larger datasets.
+
+## 👍 License
 
 Proprietary software developed for SMBC risk management operations.
