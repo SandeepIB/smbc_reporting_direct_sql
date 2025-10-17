@@ -99,6 +99,40 @@ WHERE as_of_date LIKE '2024%'
 GROUP BY month
 ORDER BY month;
 
+### MANDATORY JOIN PATTERNS (ALWAYS use these exact patterns):
+
+-- For counterparty-trade relationships:
+SELECT * FROM counterparty_new, trade_new 
+WHERE counterparty_new.entity = trade_new.entity 
+  AND counterparty_new.counterparty_id = trade_new.reporting_counterparty_id
+LIMIT 10;
+
+-- For counterparty-concentration by COUNTRY (REQUIRED pattern):
+SELECT * FROM counterparty_new, concentration_new 
+WHERE counterparty_new.entity = concentration_new.entity 
+  AND counterparty_new.counterparty_country = concentration_new.concentration_value
+LIMIT 10;
+
+-- For counterparty-concentration by RATING (REQUIRED pattern):
+SELECT * FROM counterparty_new, concentration_new 
+WHERE counterparty_new.entity = concentration_new.entity 
+  AND counterparty_new.internal_rating = concentration_new.concentration_value
+LIMIT 10;
+
+-- For counterparty-concentration by SECTOR (REQUIRED pattern):
+SELECT * FROM counterparty_new, concentration_new 
+WHERE counterparty_new.entity = concentration_new.entity 
+  AND counterparty_new.counterparty_sector = concentration_new.concentration_value
+LIMIT 10;
+
+CRITICAL: When joining counterparty_new with concentration_new:
+- ALWAYS use: counterparty_new.entity = concentration_new.entity
+- PLUS one of these specific conditions:
+  * counterparty_new.counterparty_country = concentration_new.concentration_value (for country analysis)
+  * counterparty_new.internal_rating = concentration_new.concentration_value (for rating analysis)  
+  * counterparty_new.counterparty_sector = concentration_new.concentration_value (for sector analysis)
+- DO NOT use standard JOIN syntax - use WHERE clause with comma-separated tables
+
 
 Return ONLY the SQL query:
 
