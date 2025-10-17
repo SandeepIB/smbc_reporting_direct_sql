@@ -1,17 +1,36 @@
+# src/services/ai_service.py
+
 from openai import OpenAI
 from src.core.config import Config
+from src.services.retriever import retrieve  # <-- RAG retrieval
+import json
 
 class AIService:
     def __init__(self):
         self.config = Config()
         self.config.validate()
         self.client = OpenAI(api_key=self.config.OPENAI_API_KEY)
-    
+
+    # ------------------------
+    # RAG context retrieval
+    # ------------------------
+    def _retrieve_context(self, question: str, k: int = 5) -> list:
+        """
+        Retrieve top-k relevant context documents for RAG-style SQL generation.
+        """
+        try:
+            context_docs = retrieve(question, k=k)
+            return context_docs
+        except Exception as e:
+            print(f"RAG retrieval error: {e}")
+            return []
+
+    # ------------------------
+    # Generate SQL from question
+    # ------------------------
     def question_to_sql(self, question: str, schema: str, training_context: list = None) -> str:
-        # Handle system queries only
+        # --- existing system queries ---
         question_lower = question.lower()
-        
-        # MySQL system queries
         if (("show" in question_lower or "all" in question_lower) and "users" in question_lower):
             if "active" in question_lower:
                 return "SHOW PROCESSLIST;"
@@ -27,23 +46,33 @@ class AIService:
             return "SHOW PROCESSLIST;"
         elif "current" in question_lower and "user" in question_lower:
             return "SELECT USER(), CURRENT_USER();"
-        
-        # Get training context if not provided
+
+        # --- Get training context ---
         if training_context is None:
             from backend.feedback_service import FeedbackService
             feedback_service = FeedbackService()
             training_context = feedback_service.get_semantic_context(question)
-        
-        # Build training context string
+
+        # --- Add RAG context ---
+        rag_context = self._retrieve_context(question, k=5)
+        if rag_context:
+            for doc in rag_context:
+                training_context.append({
+                    "question": doc.get("question", ""),
+                    "answer": doc.get("answer", ""),
+                    "context": doc.get("context", "")
+                })
+
+        # --- Build context string ---
         context_str = ""
         if training_context:
             context_str = "\n\nTRAINING CONTEXT (use this to improve query generation):\n"
-            for ctx in training_context[:3]:  # Use top 3 relevant contexts
+            for ctx in training_context[:3]:
                 context_str += f"- Q: {ctx['question']}\n  A: {ctx['answer']}\n"
                 if ctx.get('context'):
                     context_str += f"  Context: {ctx['context']}\n"
-        
-        # Regular data queries
+
+        # --- SQL generation prompt ---
         prompt = f"""
 Generate MySQL query using the exact schema provided.
 
@@ -59,7 +88,7 @@ CONCENTRATION_NEW table has: counterparty_count, concentration_group, entity
 IMPORTANT RULES:
 - MPE (Market Price Exposure) is ONLY in counterparty_new table.
 - Use MPE filters (mpe IS NOT NULL AND mpe != '' AND mpe != '0') **ONLY** for MPE-related questions.
-- For exposure or trade-related questions (e.g., total notional, sector exposure, trade count), DO NOT apply MPE filters.
+- For exposure or trade-related questions, DO NOT apply MPE filters.
 - counterparty_sector is ONLY in counterparty_new table.
 - counterparty_count is ONLY in concentration_new table.
 - For CCR portfolio exposure questions, use mpe from counterparty_new.
@@ -67,43 +96,11 @@ IMPORTANT RULES:
 Use correct aliases: 
 t = trade_new, c = counterparty_new, con = concentration_new
 
-### Examples of correct usage (follow these patterns):
-
--- Sector analysis:
-SELECT c.counterparty_sector, COUNT(t.trade_id) AS trade_count
-FROM trade_new t
-JOIN counterparty_new c ON t.reporting_counterparty_id = c.counterparty_id
-GROUP BY c.counterparty_sector;
-
--- Concentration group analysis:
-SELECT con.concentration_group, SUM(CAST(con.counterparty_count AS UNSIGNED)) AS total_count
-FROM concentration_new con
-GROUP BY con.concentration_group;
-
--- Monthly trend:
-SELECT DATE_FORMAT(as_of_date, '%Y-%m') AS month,
-       SUM(CAST(notional_usd AS DECIMAL(15,2))) AS monthly_notional
-FROM trade_new
-WHERE YEAR(as_of_date) = 2024
-GROUP BY month
-ORDER BY month;
-
--- MPE analysis:
-SELECT DATE_FORMAT(as_of_date, '%Y-%m') AS month,
-       SUM(CAST(mpe AS DECIMAL(15,2))) AS total_mpe
-FROM counterparty_new
-WHERE as_of_date LIKE '2024%'
-  AND mpe IS NOT NULL
-  AND mpe != ''
-  AND mpe != '0'
-GROUP BY month
-ORDER BY month;
-
-
 Return ONLY the SQL query:
 
 SQL:"""
 
+        # --- Generate SQL using OpenAI ---
         try:
             response = self.client.chat.completions.create(
                 model="gpt-4o-mini",
@@ -114,20 +111,19 @@ SQL:"""
 
             sql_query = response.choices[0].message.content.strip()
             cleaned_sql = self._clean_sql_output(sql_query)
-            
-            # Validate and fix forbidden functions
+
+            # Validate forbidden functions
             if any(forbidden in cleaned_sql.upper() for forbidden in ['LAG', 'LEAD', 'OVER', 'WINDOW']):
-                # Generate simpler query for MPE questions
                 if 'mpe' in question.lower() or 'ccr' in question.lower():
                     return "SELECT DATE_FORMAT(as_of_date, '%Y-%m') AS month, SUM(CAST(mpe AS DECIMAL(15,2))) AS total_mpe, counterparty_sector FROM counterparty_new WHERE as_of_date LIKE '2024%' AND mpe IS NOT NULL AND mpe != '' AND mpe != '0' GROUP BY month, counterparty_sector ORDER BY month;"
                 else:
                     return "SELECT counterparty_sector, COUNT(*) as count FROM counterparty_new GROUP BY counterparty_sector;"
-            
+
             return cleaned_sql
-            
+
         except Exception as e:
             raise Exception(f"AI service error: {e}")
-    
+
     def _clean_sql_output(self, sql_query: str) -> str:
         if sql_query.startswith("```"):
             lines = sql_query.split("\n")
